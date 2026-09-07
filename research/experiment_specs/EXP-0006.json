@@ -1,0 +1,164 @@
+{
+  "amendments": [],
+  "frozen_hash": "e0b4a954e6a6ffb1c3bd067d8a10363dafe236a3c386d51949300a79a806289a",
+  "proposal": {
+    "acknowledges_rejected_hypothesis_ids": [],
+    "allowed_path_scope": [
+      "benchmark/",
+      "data/",
+      "research/",
+      "experiments/"
+    ],
+    "baseline_comparison": "PRIMARY causal comparison: INTERVENTION arm vs. matched CONTROL arm (see control_condition). SECONDARY, non-causal reference: shipped baseline RUN-20260904-002 (person.recall=0.2467, hazard.precision=0.8070), retained for continuity with EXP-0001-0005's reporting convention only.",
+    "baseline_metrics": {
+      "hazard_f1": 0.602291325695581,
+      "hazard_precision": 0.8070175438596491,
+      "hazard_recall": 0.4804177545691906,
+      "num_images_evaluated": 380,
+      "overall_precision": 0.7342615012106537,
+      "overall_recall": 0.2467453213995118,
+      "run_id": "RUN-20260904-002"
+    },
+    "baseline_run_id": "RUN-20260904-002",
+    "compute_resource_estimate": {
+      "checkpoint_storage_status": "PREREQUISITE -- storage/versioning location for 6 intermediate checkpoints not yet decided",
+      "disk_requirement_status": "PREREQUISITE -- 6 checkpoints x unknown per-checkpoint size (depends on final architecture export); not estimated here to avoid fabricating a number with no basis",
+      "estimated_gpu_hours_per_seed_per_arm": 24,
+      "estimated_gpu_hours_total": 144,
+      "gpu": "RTX 3070 Ti",
+      "planning_method": "naive multiplication of CANDIDATE-0003's single unvalidated 24-GPU-hour estimate by (2 arms x 3 seeds) -- a PLANNING CEILING, not a validated figure; the actual resource authorization will be set only after a real Phase J Runner and a real calibration run exist (no calibration run is performed in this task)",
+      "status": "ESTIMATE_UNCALIBRATED -- no calibration run has been performed (explicitly out of scope for this preregistration task)"
+    },
+    "control_condition": "CONTROL arm: the SAME starting checkpoint (benchmark/models/yolov8m-oiv7.pt, byte-identical) fine-tuned for the IDENTICAL epoch budget, optimizer, learning-rate schedule, batch size, image size, and augmentation policy as the INTERVENTION arm (see controlled_variables.training_config), using an equal-sized RESAMPLED SUBSET of the EXISTING Open Images V7 training distribution -- i.e. additional training happens in both arms, the ONLY difference is whether that additional training data is OmniSight-domain or resampled-OIV7. This isolates 'additional training of this duration occurred at all' from 'training specifically on OmniSight-domain data helped'. INTERVENTION arm: identical procedure, but the additional training data is the OmniSight-specific dataset (see dataset manifest contract) instead of resampled OIV7. REFERENCE (kept for continuity with EXP-0001-0005's baseline_metrics convention, explicitly NOT treated as the causal control for this comparison): the shipped, never-further-trained yolov8m-oiv7.pt (baseline_run_id=RUN-20260904-002) -- its own pretraining history/provenance is unverified (see checkpoint provenance), so a difference between it and the intervention arm would conflate 'more training happened' with 'OmniSight data specifically helped'; only the CONTROL-vs-INTERVENTION comparison supports a causal claim about training-data composition specifically.",
+    "controlled_variables": {
+      "confidence_threshold": 0.4,
+      "evaluation_dataset": "data/manifests/eval_manifest.jsonl (frozen, 380 images)",
+      "imgsz": 640,
+      "iou_threshold": 0.7,
+      "model_architecture": "YOLOv8m",
+      "training_config": {
+        "augmentation_policy": "PREREQUISITE -- ultralytics YOLOv8 default augmentation assumed; must be explicitly frozen (not merely assumed) before any real training run",
+        "batch_size": 16,
+        "checkpoint_selection_rule": "best held-out-validation person.recall among epochs where hazard.precision >= 0.757; held-out validation split is disjoint from BOTH the frozen 380-image eval manifest AND the training data (see isolation_requirements)",
+        "data_manifest_hash": "PREREQUISITE -- dataset does not yet exist, no hash can be computed",
+        "device": "CUDA (RTX 3070 Ti, Windows) -- offline screening only, never iPhone/ANE",
+        "epochs": 50,
+        "epochs_status": "ESTIMATE_UNCALIBRATED -- see compute_resource_estimate",
+        "evaluation_thresholds": {
+          "conf": 0.4,
+          "iou": 0.7
+        },
+        "framework": "ultralytics",
+        "framework_version": "PREREQUISITE -- exact pinned version not yet recorded",
+        "imgsz": 640,
+        "learning_rate": 0.01,
+        "lr_scheduler": "PREREQUISITE -- exact schedule (ultralytics default assumed, unverified) to be confirmed from a calibration run",
+        "optimizer": "SGD (ultralytics YOLOv8 default)",
+        "seeds": [
+          42,
+          43,
+          44
+        ],
+        "starting_checkpoint": "benchmark/models/yolov8m-oiv7.pt",
+        "stopping_rule": "fixed-epoch (no early stopping) -- PREREQUISITE: replace with an explicit early-stopping-on-held-out-validation-split rule once a calibration run exists; a fixed-epoch budget without a stopping rule risks over/under-fitting relative to the (currently unknown) actual convergence behavior of this dataset size."
+      }
+    },
+    "coreml_model_replacement_approved": false,
+    "coreml_replacement_required": false,
+    "data_privacy_classification": "PRIVATE_USER_DATA",
+    "dataset_version": "PREREQUISITE -- dataset does not yet exist; will be assigned 'omnisight_v{capture_end_date}_annotated' once collection+annotation completes per the manifest contract in isolation_requirements/model_config_ref context below.",
+    "dependent_variables": [
+      "person.recall",
+      "hazard.precision",
+      "true_detector_miss_recovery_count"
+    ],
+    "evidence_references": [
+      "MEM-0003",
+      "MEM-0015",
+      "MEM-0017",
+      "MEM-0025"
+    ],
+    "expected_artifacts": [
+      "research/experiments/exp_0006/control_seed42/weights/best.pt",
+      "research/experiments/exp_0006/control_seed43/weights/best.pt",
+      "research/experiments/exp_0006/control_seed44/weights/best.pt",
+      "research/experiments/exp_0006/intervention_seed42/weights/best.pt",
+      "research/experiments/exp_0006/intervention_seed43/weights/best.pt",
+      "research/experiments/exp_0006/intervention_seed44/weights/best.pt",
+      "research/experiments/exp_0006/seed_results.json",
+      "research/experiments/exp_0006/aggregate_verdict.json"
+    ],
+    "experiment_id": "EXP-0006",
+    "external_api_required": false,
+    "external_upload_approved": false,
+    "family": "training_data",
+    "hypothesis": "Fine-tuning YOLOv8m on an OmniSight-domain dataset (chest-height, indoor/outdoor, low-light, motion-blurred accessibility-scenario frames) recovers more of the 92 fixed baseline TRUE_DETECTOR_MISS Person cases than a MATCHED control arm trained identically except for using resampled existing Open Images V7 data instead -- specifically, at least 22 of the 92 cases (5 more than candidate C's 17, EXP-0005/MEM-0015) -- while keeping hazard.precision >= 0.757, across a majority of 3 pre-registered training seeds.",
+    "implementation_scope": "Experiment conducted entirely within research/ and a new experiments/ output directory; no change to ios/, benchmark/config.py, or the frozen baseline. Requires a real Phase J Runner implementation to execute (does not exist yet, per reports/phase_j/PHASE_J_SAFETY_AUDIT.md's residual-risk section) -- this proposal is a specification only, not an executable plan against current infrastructure.",
+    "inconclusive_if": "classify_aggregate_verdict() == 'INCONCLUSIVE': exactly 1 of 3 seeds achieves a per-seed PASS with no precision-guardrail veto -- mixed, non-majority signal.",
+    "independent_variables": [
+      "training_dataset_composition"
+    ],
+    "isolation_requirements": "Train/eval isolation: SHA-256 exact-duplicate exclusion (existing convention) PLUS perceptual-hash near-duplicate exclusion against the frozen 380-image eval manifest; session-disjoint train/validation split (see dataset manifest contract) as the primary near-duplicate-leakage control within the training data itself. Checkpoint provenance (see checkpoint_provenance below) is a BLOCKING PREREQUISITE, verified before any real training run, never inferred from filename. Starting checkpoint: benchmark/models/yolov8m-oiv7.pt. KNOWN: architecture=YOLOv8m (confirmed via ultralytics model introspection, same convention as EXP-0005); class_set=Open Images V7, 601 classes (confirmed via live model.names, same as production). UNKNOWN/PREREQUISITE (blocking, must be verified before any real training run -- never inferred from filename): exact upstream source (believed to be an Ultralytics official OIV7 release asset per BENCHMARK_PLAN.md's description, unverified against the actual release manifest); SHA-256 of the checkpoint file; the checkpoint's own weight-file license (distinct from the image/annotation licenses documented in docs/DATASETS.md, which cover the EVALUATION data, not this model's training data); the checkpoint's own original training dataset and hyperparameters; whether any fine-tuning beyond stock OIV7 pretraining has already been silently applied to this specific .pt file; exact ultralytics/framework version used to produce it. DATASET MANIFEST CONTRACT (no data collected here): DATASET DOES NOT YET EXIST. This section is a MANIFEST CONTRACT (schema + policy), not a dataset -- no image is collected, staged, or referenced as if it existed. Capture domain: chest-height camera angle, indoor and outdoor pedestrian-accessibility scenarios, explicitly including low-light and motion-blur conditions. Inclusion criterion: a frame is included only if it contains at least one person with an annotatable bounding box; frames with zero persons are excluded (this is a Person-detection-focused dataset, not a general re-training set). Class definition: reuses the existing Open Images V7 'Person' class definition unchanged (no new subtypes/age/pose categories) for direct comparability with the baseline and EXP-0001-0005. Annotation format: matches data/manifests/eval_manifest.jsonl's existing schema exactly (sample_id, source, filename, split, labels[{class_name, bbox [x,y,w,h] normalized, is_occluded, is_truncated, is_group_of}], scene_category, lighting_category, difficulty, license{...}) plus two NEW required fields per record: consent_status (one of STAGED_CONSENTED | INCIDENTAL_CONSENTED | PROHIBITED -- INCIDENTAL_NONCONSENTED is never a valid value, see privacy section) and capture_session_id (used for the session-disjoint train/val split below). Annotation QA: dual independent annotation with adjudication on any disagreement; inter-annotator bounding-box IoU agreement target >= 0.7 on >= 95% of boxes before a batch is accepted; annotation-guideline version string recorded per batch. Image/video source provenance: staged, consented capture sessions only (see privacy section) -- no scraped or incidentally-sourced imagery. Train/validation split: split by capture_session_id, never by individual frame -- no two frames from the same capture session may appear on both sides of the split, which also serves as the primary near-duplicate-leakage control (consecutive video frames from one session are near-duplicates by construction). Frozen baseline-evaluation isolation: every candidate image's SHA-256 is checked against data/manifests/eval_manifest.jsonl's existing 380 images for exact-duplicate exclusion (existing convention); ADDITIONALLY, a perceptual hash (e.g. pHash) comparison against the same 380 images is required to catch near-duplicate leakage that a SHA-256-only check would miss (a near-identical re-capture of the same eval scene, not merely the identical file). Versioning: dataset_version follows 'omnisight_v{capture_end_date}_annotated', tied 1:1 to a recorded annotation-guideline version. Manifest hash: SHA-256 of the finished manifest JSONL, to be computed and frozen once the dataset exists -- PREREQUISITE, not yet computable. Dataset SIZE: not fabricated here; a planning estimate only (see compute_resource_estimate), not a committed target, since no power analysis for this specific effect size has been run. PRIVACY CLASSIFICATION: CORRECTED from CANDIDATE-0003 (which used data_privacy_classification=NONE): the described capture domain (real people, in real indoor/outdoor accessibility scenarios, at chest-height camera angle) is PII-bearing by construction -- this is set to PRIVATE_USER_DATA, not NONE. Explicit distinction of source categories for this dataset: public/non-sensitive source (NOT used -- no scraped/public imagery); staged/synthetic source (not used for this design, though a future revision could substitute this to avoid the private-data approval entirely); consented collection (the REQUIRED capture method for every included frame -- consent_status=STAGED_CONSENTED); incidental bystanders (permitted ONLY as consent_status=INCIDENTAL_CONSENTED, meaning a bystander who appears incidentally but has separately given consent -- e.g. a public demo/pilot with posted signage and an opt-out process); private imagery of a non-consenting subject (PROHIBITED -- any frame containing a non-consenting identifiable bystander must be excluded or the person masked/blurred before annotation, never included as-is); prohibited/unsupported collection (any covert, non-consented, or ToS-violating capture method -- explicitly out of scope, never authorized by this proposal). private_user_data_use_approved is NOT granted by this proposal and remains False -- this is flagged as a REQUIRED human approval, not silently assumed.",
+    "mac_iphone_deployment_approved": false,
+    "mac_iphone_required": true,
+    "materially_new_rationale": "Materially distinct from every prior EXP-0001-0005 (threshold/resolution/class-remap/preprocessing/checkpoint-size, none of which changed training data) and from CANDIDATE-0001 (temporal_pipeline, a post-hoc confirmation filter -- structurally cannot add a detection to a zero-detection frame, per reports/phase_i/CANDIDATE_0001_POSTMORTEM.md) and CANDIDATE-0002 (model_variant + gamma preprocessing, rejected for missing rejected-hypothesis acknowledgment and a mac_iphone_required schema gap, and independently assessed PLAUSIBLE_BUT_UNDERJUSTIFIED for lacking a mechanistic link between gamma correction and YOLO11m's own precision collapse). This design (a) is the first to isolate training-DATA composition via a matched control arm rather than comparing against the shipped baseline directly, closing the causal-confound gap CANDIDATE-0003 left open, and (b) is the first to use a multi-seed, cherry-pick-proof aggregate verdict rather than a single training run. NOTE (validator limitation, disclosed honestly): research.experiment_validator's rejected-hypothesis check requires an EXACT family match against existing EXP rows; since no EXP-0001-0005 row has family='training_data', that mechanical check cannot and will not fire for this proposal regardless of content -- this acknowledgment section is therefore the ONLY place any conceptual-overlap accounting exists, and is provided voluntarily, not because the deterministic gate required it.",
+    "model_config_ref": "Starting checkpoint benchmark/models/yolov8m-oiv7.pt (SHA-256/exact source/license PREREQUISITE, see checkpoint-provenance notes in isolation_requirements). Final trained config refs: 'omnisight_control_v1_seed{42,43,44}' and 'omnisight_intervention_v1_seed{42,43,44}' (6 total trained checkpoints).",
+    "motivation": "Corrects CANDIDATE-0003's hypothesis/metric wording mismatch identified in reports/phase_i/CANDIDATE_0003_EXP0006_ELIGIBILITY.md section 1: the prior wording ('25% more than baseline') was vacuous since the baseline recovers 0/92 by definition (TRUE_DETECTOR_MISS is DEFINED as zero baseline detections); the actual binding comparison was always against candidate C's 17/92, restated here explicitly as an absolute-count threshold (interpretation C from that audit's three offered models), never as a percentage-of-a-percentage.",
+    "new_training_approved": false,
+    "prior_experiment_ids": [
+      "EXP-0004",
+      "EXP-0005"
+    ],
+    "private_user_data_use_approved": false,
+    "procedure": "1. [PREREQUISITE, not done here] Collect+annotate the OmniSight-domain dataset per the manifest contract below. 2. [PREREQUISITE] Verify yolov8m-oiv7.pt provenance per the checkpoint-provenance section. 3. Build the CONTROL arm's resampled-OIV7 training set (equal size to the OmniSight-domain set, drawn from existing OIV7 training data, excluding any image in the frozen 380-image eval manifest). 4. For each of the 3 pre-registered seeds (42, 43, 44): train CONTROL and INTERVENTION arms independently, identical procedure/hyperparameters (see training_config), differing only in training data. 5. Evaluate every trained checkpoint against the frozen eval manifest at conf=0.4/iou=0.7, computing person.recall, hazard.precision, and true_detector_miss_recovery_count (per-seed criteria). 6. Classify each seed via classify_seed_verdict() and the aggregate via classify_aggregate_verdict() (research/preregistration.py) -- both deterministic, pre-registered, no post-hoc discretion. 7. Report every seed's result (COMPLETED or FAILED), never a favorable-subset selection.",
+    "production_impact": false,
+    "production_impact_description": "Experimental evaluation only; any production model swap requires a separate, later, explicit human decision and is never implied by this proposal or by registration itself.",
+    "production_swift_modification_approved": false,
+    "rejects_hypothesis_if": "classify_aggregate_verdict() == 'FAIL': either zero of 3 seeds achieve a per-seed PASS, or ANY seed fails specifically on the hazard-precision guardrail (a single safety-guardrail violation vetoes the whole aggregate, regardless of other seeds).",
+    "reproducibility_requirements": "Every training_config field (see controlled_variables.training_config) is a structured, hashable dict participating in this proposal's own content hash -- not prose-only. All 3 seeds' full results (not a favorable subset) must be reported per research.execution_job.seeds' cherry-pick-proofing contract. Fixed random seed per run; CONTROL and INTERVENTION arms for the same seed use the identical seed value (seed varies the training stochasticity, not the arm identity).",
+    "research_question": "Does OmniSight-domain training data, specifically (isolated from the mere fact of additional training), recover more TRUE_DETECTOR_MISS Person cases than a matched control receiving equivalent additional training on existing Open Images V7 data, without violating the hazard-precision guardrail, and is this effect consistent across multiple training seeds?",
+    "schema_version": "1.0",
+    "signing_distribution_change_approved": false,
+    "signing_distribution_change_required": false,
+    "success_criteria": {
+      "guardrails": [
+        "hazard.precision >= 0.757"
+      ],
+      "min_meaningful_delta": 0.03,
+      "primary_metric": "person.recall",
+      "recovery_metric_definition": {
+        "denominator": 92,
+        "direction": "must exceed the reference by a pre-registered absolute margin, never a relative-percentage-of-a-percentage",
+        "interpretation_chosen": "C -- incremental absolute count beyond the prior best candidate's recovery (reports/phase_i/CANDIDATE_0003_EXP0006_ELIGIBILITY.md section 1's three offered models); NOT interpretation A (bare fraction of 92) alone and NOT interpretation B (relative-improvement percentage), because the baseline's own recovery rate is tautologically 0/92 and a 'percent more than baseline' framing is therefore vacuous.",
+        "name": "true_detector_miss_recovery_count",
+        "numerator": "count of the 92 fixed baseline TRUE_DETECTOR_MISS Person cases (established by EXP-0005) detected by the INTERVENTION model at conf=0.4",
+        "reference_condition": "candidate C (YOLO11m/COCO, EXP-0005/MEM-0015), which recovered 17 of the 92 cases",
+        "threshold": "recovery_count >= 22 (reference 17 + margin 5)"
+      },
+      "seed_plan": {
+        "aggregate_verdict_function": "research.preregistration.classify_aggregate_verdict",
+        "no_cherry_picking": "all 3 seeds' results reported regardless of outcome; aggregation requires a MAJORITY (>=2/3), never a single favorable seed",
+        "per_seed_verdict_function": "research.preregistration.classify_seed_verdict",
+        "seeds": [
+          42,
+          43,
+          44
+        ]
+      }
+    },
+    "supports_hypothesis_if": "classify_aggregate_verdict() == 'PASS': >=2 of 3 seeds independently satisfy ALL THREE per-seed criteria (hazard.precision>=0.757 AND person.recall delta>=0.03 AND recovery_count>=22), with zero seeds vetoed on the precision guardrail.",
+    "title": "OmniSight-Domain Fine-Tuning vs. Matched Resampled-OIV7 Control for Person TRUE_DETECTOR_MISS Recovery"
+  },
+  "result": {
+    "benchmark_artifact_paths": [],
+    "code_diff_path": null,
+    "conclusion": null,
+    "execution_run_id": null,
+    "execution_status": null,
+    "limitations": [],
+    "metrics": null,
+    "research_verdict": null,
+    "test_results_summary": null
+  },
+  "status": "VALIDATED"
+}

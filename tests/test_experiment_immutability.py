@@ -178,15 +178,22 @@ class TestExp0001Through0005Integrity:
         finally:
             db.close()
 
-    def test_no_exp_0006_exists(self):
+    def test_exp_0006_registered_blocked_no_exp_0007(self):
+        """EXP-0006 was authorized and registered (research.register_exp_0006,
+        reports/phase_i/EXP0006_REGISTRATION_REPORT.md) -- this test's
+        invariant updates accordingly: EXP-0006 now exists but must be
+        BLOCKED (registered, not executable), and no EXP-0007 exists."""
         if not DB_PATH.exists():
             pytest.skip("research/omnilab.db not present in this environment")
         from research.db import ExperimentNotFoundError
 
         db = OmniLabDB()
         try:
+            exp = db.get_experiment("EXP-0006")
+            assert exp.execution_status == "BLOCKED"
+            assert exp.research_verdict == "PENDING"
             with pytest.raises(ExperimentNotFoundError):
-                db.get_experiment("EXP-0006")
+                db.get_experiment("EXP-0007")
         finally:
             db.close()
 

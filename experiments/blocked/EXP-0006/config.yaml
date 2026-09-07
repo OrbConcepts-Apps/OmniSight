@@ -1,0 +1,64 @@
+experiment_id: EXP-0006
+experiment_family: training_data
+independent_variable: training_dataset_composition
+controls:
+  confidence_threshold: 0.4
+  evaluation_dataset: data/manifests/eval_manifest.jsonl (frozen, 380 images)
+  imgsz: 640
+  iou_threshold: 0.7
+  model_architecture: YOLOv8m
+configuration:
+  confidence_threshold: 0.4
+  evaluation_dataset: data/manifests/eval_manifest.jsonl (frozen, 380 images)
+  imgsz: 640
+  iou_threshold: 0.7
+  model_architecture: YOLOv8m
+  training_config:
+    augmentation_policy: PREREQUISITE -- ultralytics YOLOv8 default augmentation assumed;
+      must be explicitly frozen (not merely assumed) before any real training run
+    batch_size: 16
+    checkpoint_selection_rule: best held-out-validation person.recall among epochs
+      where hazard.precision >= 0.757; held-out validation split is disjoint from
+      BOTH the frozen 380-image eval manifest AND the training data (see isolation_requirements)
+    data_manifest_hash: PREREQUISITE -- dataset does not yet exist, no hash can be
+      computed
+    device: CUDA (RTX 3070 Ti, Windows) -- offline screening only, never iPhone/ANE
+    epochs: 50
+    epochs_status: ESTIMATE_UNCALIBRATED -- see compute_resource_estimate
+    evaluation_thresholds:
+      conf: 0.4
+      iou: 0.7
+    framework: ultralytics
+    framework_version: PREREQUISITE -- exact pinned version not yet recorded
+    imgsz: 640
+    learning_rate: 0.01
+    lr_scheduler: PREREQUISITE -- exact schedule (ultralytics default assumed, unverified)
+      to be confirmed from a calibration run
+    optimizer: SGD (ultralytics YOLOv8 default)
+    seeds:
+    - 42
+    - 43
+    - 44
+    starting_checkpoint: benchmark/models/yolov8m-oiv7.pt
+    stopping_rule: 'fixed-epoch (no early stopping) -- PREREQUISITE: replace with
+      an explicit early-stopping-on-held-out-validation-split rule once a calibration
+      run exists; a fixed-epoch budget without a stopping rule risks over/under-fitting
+      relative to the (currently unknown) actual convergence behavior of this dataset
+      size.'
+baseline_run_id: RUN-20260904-002
+validation_requirement: REQUIRES_IPHONE
+estimated_cost:
+  checkpoint_storage_status: PREREQUISITE -- storage/versioning location for 6 intermediate
+    checkpoints not yet decided
+  disk_requirement_status: PREREQUISITE -- 6 checkpoints x unknown per-checkpoint
+    size (depends on final architecture export); not estimated here to avoid fabricating
+    a number with no basis
+  estimated_gpu_hours_per_seed_per_arm: 24
+  estimated_gpu_hours_total: 144
+  gpu: RTX 3070 Ti
+  planning_method: naive multiplication of CANDIDATE-0003's single unvalidated 24-GPU-hour
+    estimate by (2 arms x 3 seeds) -- a PLANNING CEILING, not a validated figure;
+    the actual resource authorization will be set only after a real Phase J Runner
+    and a real calibration run exist (no calibration run is performed in this task)
+  status: ESTIMATE_UNCALIBRATED -- no calibration run has been performed (explicitly
+    out of scope for this preregistration task)
