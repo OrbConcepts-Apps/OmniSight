@@ -1,0 +1,39 @@
+{
+  "calls_budget": 3,
+  "calls_made": 2,
+  "candidate_id": "CANDIDATE-0003",
+  "created_at": "2026-09-06T18:35:10.715378+00:00",
+  "final_report_path": "C:\\Users\\Armaa\\Downloads\\OmniSight\\research\\candidates\\CANDIDATE-0003\\CANDIDATE-0003-final.json",
+  "history": [
+    {
+      "at": "2026-09-06T18:36:10.037939+00:00",
+      "from": "CREATED",
+      "reason": "",
+      "to": "RESEARCHER_COMPLETED"
+    },
+    {
+      "at": "2026-09-06T18:36:10.055072+00:00",
+      "from": "RESEARCHER_COMPLETED",
+      "reason": "",
+      "to": "VALIDATED"
+    },
+    {
+      "at": "2026-09-06T18:36:25.356816+00:00",
+      "from": "VALIDATED",
+      "reason": "",
+      "to": "REVIEW_COMPLETED"
+    },
+    {
+      "at": "2026-09-06T18:36:25.363376+00:00",
+      "from": "REVIEW_COMPLETED",
+      "reason": "reviewer ACCEPT -- finalized without revision",
+      "to": "FINALIZED"
+    }
+  ],
+  "proposal_path": "C:\\Users\\Armaa\\Downloads\\OmniSight\\research\\candidates\\CANDIDATE-0003\\CANDIDATE-0003-proposal.json",
+  "review_path": "C:\\Users\\Armaa\\Downloads\\OmniSight\\research\\candidates\\CANDIDATE-0003\\CANDIDATE-0003-review.json",
+  "revision_path": null,
+  "state": "FINALIZED",
+  "stopped_reason": "",
+  "updated_at": "2026-09-06T18:36:25.363376+00:00"
+}

@@ -1,0 +1,138 @@
+{
+  "actually_queued": false,
+  "artifact_type": "PHASE_I_PROPOSAL",
+  "call_records": [
+    {
+      "actual_model_returned": "nvidia/nemotron-3-super-120b-a12b:free",
+      "choices_present": true,
+      "content_length": 7487,
+      "content_present": true,
+      "dryrun_id": "CANDIDATE-0003",
+      "envelope_parsed": true,
+      "error": null,
+      "failure_category": null,
+      "finish_reason": "stop",
+      "http_status": 200,
+      "latency_ms": 59313.0000000001,
+      "local_schema_validation_result": null,
+      "message_present": true,
+      "model_used": "nvidia/nemotron-3-super-120b-a12b:free",
+      "network_attempted": true,
+      "provider_error_code": null,
+      "provider_error_message": null,
+      "reasoning_configuration": "DISABLED",
+      "request_id": "gen-1788719712-FXOPVry2wnkKsA0Va78g",
+      "requested_model": "nvidia/nemotron-3-super-120b-a12b:free",
+      "role": "researcher",
+      "selected_model": "nvidia/nemotron-3-super-120b-a12b:free",
+      "step": "phase_i_researcher",
+      "structured_output_capability_state": true,
+      "structured_parse_result": null,
+      "succeeded": true,
+      "timestamp": "2026-09-06T18:35:10.718376+00:00",
+      "token_usage": {
+        "cached_tokens": 0,
+        "completion_tokens": 2025,
+        "prompt_tokens": 5008,
+        "reasoning_tokens": 0,
+        "total_tokens": 7033
+      }
+    }
+  ],
+  "candidate_id": "CANDIDATE-0003",
+  "generated_at": "2026-09-06T18:36:10.034386+00:00",
+  "proposal": {
+    "acknowledges_rejected_hypothesis_ids": [],
+    "allowed_path_scope": [
+      "benchmark/",
+      "data/",
+      "research/",
+      "experiments/"
+    ],
+    "baseline_comparison": "Compare against MEM-0002 and MEM-0003: baseline person.recall = 0.211, hazard.precision = 0.807. Success requires person.recall increase \u2265 0.03 (min_meaningful_delta) and hazard.precision \u2265 0.757 (guardrail floor from MEM-0004).",
+    "baseline_metrics": {
+      "hazard_f1": 0.602291325695581,
+      "hazard_map50": 0.5822603224286523,
+      "hazard_precision": 0.8070175438596491,
+      "hazard_recall": 0.4804177545691906,
+      "num_images_evaluated": 380,
+      "overall_precision": 0.7342615012106537,
+      "overall_recall": 0.2467453213995118,
+      "run_id": "RUN-20260904-002"
+    },
+    "baseline_run_id": "RUN-20260904-002",
+    "compute_resource_estimate": {
+      "estimated_gpu_hours": 24,
+      "gpu": "RTX 3070 Ti"
+    },
+    "control_condition": "Baseline model: YOLOv8m trained on Open Images V7 (601 classes), evaluated at conf=0.4, iou=0.7, imgsz=640.",
+    "controlled_variables": {
+      "confidence_threshold": 0.4,
+      "evaluation_dataset": "benchmark/results/baseline/",
+      "imgsz": 640,
+      "iou_threshold": 0.7,
+      "model_architecture": "YOLOv8m"
+    },
+    "coreml_model_replacement_approved": false,
+    "coreml_replacement_required": false,
+    "data_privacy_classification": "NONE",
+    "dataset_version": "PREREQUISITE: OmniSight-specific training dataset must be collected and annotated per docs/DATASETS.md Section 8 before dataset_version can be assigned; version will be formatted as 'omnisight_v{date}_annotated' (e.g., omnisight_v20240615_annotated) upon completion.",
+    "dependent_variables": [
+      "person.recall",
+      "hazard.precision",
+      "TRUE_DETECTOR_MISS_recovery_rate"
+    ],
+    "evidence_references": [
+      "MEM-0003",
+      "MEM-0015",
+      "MEM-0017",
+      "MEM-0025"
+    ],
+    "expected_artifacts": [
+      "research/experiments/omnisight_finetune/train.log",
+      "research/experiments/omnisight_finetune/weights/best.pt",
+      "research/experiments/omnisight_finetune/evaluation/metrics.json",
+      "research/experiments/omnisight_finetune/evaluation/per_class.json",
+      "research/experiments/omnisight_finetune/true_detector_miss_analysis.json"
+    ],
+    "experiment_id": "EXP-9003",
+    "external_api_required": false,
+    "external_upload_approved": false,
+    "family": "training_data",
+    "hypothesis": "Fine-tuning YOLOv8m on an OmniSight-specific dataset collected from real accessibility usage (chest-height, indoor, low-light, motion-blurred frames) will recover at least 25% more TRUE_DETECTOR_MISS Person cases than the baseline model at conf=0.4, by addressing representation gaps in Open Images V7 related to atypical viewpoints, occlusion patterns, and environmental conditions prevalent in accessibility scenarios, while maintaining hazard precision above the guardrail floor of 0.757.",
+    "implementation_scope": "Experiment will be conducted in research/ directory using existing training/evaluation harness; no changes to production code (ios/, benchmark/config.py) or frozen baseline.",
+    "inconclusive_if": "person.recall increase is between 0 and 0.03 (exclusive) AND hazard.precision \u2265 0.757, or if precision drop is offset by recall gain but no clear net benefit per evaluation policy",
+    "independent_variables": [
+      "training_dataset"
+    ],
+    "isolation_requirements": "Zero train/eval overlap guaranteed by excluding all image IDs in the OmniSight evaluation set from the training set via SHA-256 hash comparison against the image manifest; eval set must be held out prior to any training and never seen during weight updates.",
+    "mac_iphone_deployment_approved": false,
+    "mac_iphone_required": true,
+    "materially_new_rationale": "Unlike EXP-0005 which only tested larger checkpoints of the same architecture/vocabulary (yolov8l-oiv7), this proposal investigates a fundamental shift in training data representation by using OmniSight-specific data. It is not a generic pixel preprocessing (EXP-0004), confidence threshold tweak (EXP-0001), resolution change (EXP-0002), or class remapping (EXP-0003). It directly addresses the limitation in MEM-0017 and MEM-0025 that Open Images V7 is not representative of real-world usage, and builds on the hint in MEM-0015 that training data differences (COCO vs OIV7) may drive recall gains.",
+    "model_config_ref": "yolov8m-oiv7.pt (Open Images V7 pretrained weights) as starting point for fine-tuning; final config ref will be 'omnisight_finetuned_v1' after training.",
+    "motivation": "Baseline Person recall is critically low at 0.211 (MEM-0003), and Open Images V7 is acknowledged as non-representative of real accessibility usage (MEM-0017, MEM-0025). The success of a COCO-trained model (MEM-0015) in recovering TRUE_DETECTOR_MISS cases\u2014despite being rejected on precision grounds\u2014suggests that training data alignment with target use cases is a promising lever. This experiment directly tests whether closing the dataset representation gap via targeted data collection can improve recall for accessibility-relevant Person detections without compromising safety-critical precision.",
+    "new_training_approved": false,
+    "prior_experiment_ids": [
+      "EXP-0005"
+    ],
+    "private_user_data_use_approved": false,
+    "procedure": "1. Collect and annotate an OmniSight-specific dataset per docs/DATASETS.md Section 8, focusing on chest-height, indoor, low-light, and motion-blurred scenarios from real accessibility use. 2. Partition into train/eval with strict isolation (see isolation_requirements). 3. Fine-tune YOLOv8m (Open Images V7 pretrained) on the OmniSight training split for 50 epochs using standard YOLOv8 hyperparameters. 4. Evaluate on the baseline evaluation set (to maintain comparability) and report person.recall, hazard.precision, and TRUE_DETECTOR_MISS recovery rate. 5. Compare results to baseline (MEM-0002, MEM-0003) and candidate C (MEM-0015) performance.",
+    "production_impact": false,
+    "production_impact_description": "This proposal is for experimental evaluation only. Any production impact would require separate human review, safety validation, and explicit approval per production_safety_constraints. No changes to ios/, benchmark/config.py, or frozen baseline are implied or enabled by this proposal.",
+    "production_swift_modification_approved": false,
+    "rejects_hypothesis_if": "person.recall < 0.211 + 0.03 OR hazard.precision < 0.757",
+    "reproducibility_requirements": "Training must use fixed random seed (42), deterministic PyTorch settings, and documented YOLOv8 hyperparameters (lr0=0.01, batch=16, epochs=50). Dataset partition and annotation guidelines must be archived. Evaluation must use the same baseline evaluation set as MEM-0001 to MEM-0005.",
+    "research_question": "Does fine-tuning the YOLOv8m detector on a human-collected OmniSight-specific dataset (representing real-world accessibility conditions) improve Person recall for TRUE_DETECTOR_MISS cases compared to the baseline Open Images V7-trained model, without violating hazard-precision guardrails?",
+    "schema_version": "1.0",
+    "signing_distribution_change_approved": false,
+    "signing_distribution_change_required": false,
+    "success_criteria": {
+      "min_meaningful_delta": 0.03,
+      "primary_metric": "person.recall"
+    },
+    "supports_hypothesis_if": "person.recall \u2265 0.241 (0.211 + 0.03) AND hazard.precision \u2265 0.757 AND TRUE_DETECTOR_MISS_recovery_rate \u2265 (17/92) * 1.25 \u2248 0.231 (25% improvement over COTO-trained candidate C's recovery rate)",
+    "title": "Investigating the Impact of OmniSight-Specific Training Data on Person Recall for Accessibility Use Cases"
+  },
+  "raw_selected_problem": "Training-data / representation gaps in the underlying model's training set",
+  "raw_selection_rationale": "The strongest finding (MEM-0015) indicates that candidate C (yolo11m, COCO-trained) recovered 17/92 TRUE_DETECTOR_MISS cases at conf=0.4, while same-family larger checkpoints (yolov8l-oiv7) recovered only 1/92. This suggests that training data differences (COCO vs Open Images V7) may be a key factor in recovering missed detections, rather than architecture or capacity alone. Furthermore, unresolved question MEM-0025 explicitly questions whether a human-collected OmniSight-specific dataset would change findings, noting that Open Images V7 is not representative of real accessibility-usage conditions. This directly supports investigating training-data gaps as a lever for improvement."
+}

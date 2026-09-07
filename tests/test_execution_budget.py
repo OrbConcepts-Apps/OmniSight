@@ -85,3 +85,83 @@ class TestImmutableConfig:
         config = ExecutionBudgetConfig(gpu_execution_authorized=True)
         with pytest.raises(Exception):
             config.gpu_execution_authorized = False  # type: ignore[misc]
+
+
+class TestPhaseJPerJobWallClock:
+    def test_estimate_exceeding_per_job_limit_refuses(self):
+        config = ExecutionBudgetConfig(gpu_execution_authorized=True, max_wall_clock_sec_per_job=3600)
+        estimate = ResourceEstimate(estimated_wall_clock_sec=7200)
+        with pytest.raises(ExecutionBudgetError):
+            require_execution_budget("job_x", config=config, estimate=estimate)
+
+    def test_estimate_within_per_job_limit_allows(self):
+        config = ExecutionBudgetConfig(gpu_execution_authorized=True, max_wall_clock_sec_per_job=3600)
+        estimate = ResourceEstimate(estimated_wall_clock_sec=1800)
+        require_execution_budget("job_x", config=config, estimate=estimate)
+
+
+class TestPhaseJDailyGpuRuntime:
+    def test_exceeding_daily_limit_refuses(self):
+        config = ExecutionBudgetConfig(gpu_execution_authorized=True, max_cumulative_gpu_runtime_sec_per_day=10000)
+        with pytest.raises(ExecutionBudgetError):
+            require_execution_budget(
+                "job_x", config=config, current_cumulative_gpu_runtime_sec_today=9000,
+                estimate=ResourceEstimate(estimated_wall_clock_sec=2000),
+            )
+
+    def test_within_daily_limit_allows(self):
+        config = ExecutionBudgetConfig(gpu_execution_authorized=True, max_cumulative_gpu_runtime_sec_per_day=10000)
+        require_execution_budget(
+            "job_x", config=config, current_cumulative_gpu_runtime_sec_today=1000,
+            estimate=ResourceEstimate(estimated_wall_clock_sec=2000),
+        )
+
+
+class TestPhaseJRetryPolicy:
+    def test_default_max_retry_count_is_zero(self):
+        config = ExecutionBudgetConfig(gpu_execution_authorized=True)
+        assert config.max_retry_count == 0
+
+    def test_any_retry_refused_by_default(self):
+        config = ExecutionBudgetConfig(gpu_execution_authorized=True)
+        with pytest.raises(ExecutionBudgetError):
+            require_execution_budget("job_x", config=config, retry_count=1)
+
+    def test_retry_within_explicit_higher_cap_allows(self):
+        config = ExecutionBudgetConfig(gpu_execution_authorized=True, max_retry_count=2)
+        require_execution_budget("job_x", config=config, retry_count=2)
+
+    def test_retry_above_explicit_cap_refused(self):
+        config = ExecutionBudgetConfig(gpu_execution_authorized=True, max_retry_count=2)
+        with pytest.raises(ExecutionBudgetError):
+            require_execution_budget("job_x", config=config, retry_count=3)
+
+
+class TestPhaseJResourceFloors:
+    def test_disk_floor_configured_but_not_supplied_fails_closed(self):
+        config = ExecutionBudgetConfig(gpu_execution_authorized=True, min_free_disk_gb=50.0)
+        with pytest.raises(ExecutionBudgetError):
+            require_execution_budget("job_x", config=config)
+
+    def test_disk_below_floor_refused(self):
+        config = ExecutionBudgetConfig(gpu_execution_authorized=True, min_free_disk_gb=50.0)
+        with pytest.raises(ExecutionBudgetError):
+            require_execution_budget("job_x", config=config, current_free_disk_gb=10.0)
+
+    def test_disk_above_floor_allows(self):
+        config = ExecutionBudgetConfig(gpu_execution_authorized=True, min_free_disk_gb=50.0)
+        require_execution_budget("job_x", config=config, current_free_disk_gb=100.0)
+
+    def test_ram_floor_configured_but_not_supplied_fails_closed(self):
+        config = ExecutionBudgetConfig(gpu_execution_authorized=True, min_free_ram_gb=8.0)
+        with pytest.raises(ExecutionBudgetError):
+            require_execution_budget("job_x", config=config)
+
+    def test_ram_below_floor_refused(self):
+        config = ExecutionBudgetConfig(gpu_execution_authorized=True, min_free_ram_gb=8.0)
+        with pytest.raises(ExecutionBudgetError):
+            require_execution_budget("job_x", config=config, current_free_ram_gb=2.0)
+
+    def test_ram_above_floor_allows(self):
+        config = ExecutionBudgetConfig(gpu_execution_authorized=True, min_free_ram_gb=8.0)
+        require_execution_budget("job_x", config=config, current_free_ram_gb=16.0)

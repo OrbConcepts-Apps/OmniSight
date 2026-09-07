@@ -39,6 +39,20 @@ class ExecutionBudgetConfig:
     max_cumulative_runtime_sec_per_cycle: Optional[int] = None
     max_concurrent_training_jobs: Optional[int] = None
 
+    # Phase J additions -- a generic long-running-job execution boundary
+    # needs a per-JOB ceiling distinct from the pre-existing per-EXPERIMENT
+    # one (an experiment may launch several jobs, e.g. one per seed), a
+    # per-day GPU-runtime ceiling distinct from the pre-existing per-cycle
+    # one, an explicit retry cap (default 0 -- see require_execution_budget's
+    # retry_count check), and optional disk/RAM floors. All remain Optional
+    # with no "unlimited" default; None simply means "this particular limit
+    # is not being enforced", never inferred as permission.
+    max_wall_clock_sec_per_job: Optional[int] = None
+    max_cumulative_gpu_runtime_sec_per_day: Optional[int] = None
+    max_retry_count: int = 0
+    min_free_disk_gb: Optional[float] = None
+    min_free_ram_gb: Optional[float] = None
+
 
 @dataclass(frozen=True)
 class ResourceEstimate:
@@ -66,6 +80,11 @@ def require_execution_budget(
     estimate: Optional[ResourceEstimate] = None,
     current_cumulative_runtime_sec: int = 0,
     current_running_training_jobs: int = 0,
+    current_cumulative_gpu_runtime_sec_today: int = 0,
+    retry_count: int = 0,
+    current_free_disk_gb: Optional[float] = None,
+    current_free_ram_gb: Optional[float] = None,
+    gpu_required: bool = True,
 ) -> None:
     """Fail-closed gate a future GPU/training-consuming operation MUST call
     before starting. Raises ExecutionBudgetError for any of:
@@ -86,7 +105,7 @@ def require_execution_budget(
             "resource-consuming operations require an explicit, human-configured budget "
             "-- there is no 'unlimited' default."
         )
-    if not config.gpu_execution_authorized:
+    if gpu_required and not config.gpu_execution_authorized:
         raise ExecutionBudgetError(
             f"refusing {operation!r}: gpu_execution_authorized=False. GPU execution "
             "requires explicit human authorization, distinct from any per-experiment "
@@ -121,4 +140,54 @@ def require_execution_budget(
                 f"{current_cumulative_runtime_sec}s + estimated {estimate.estimated_wall_clock_sec}s "
                 f"would exceed the configured per-cycle limit of "
                 f"{config.max_cumulative_runtime_sec_per_cycle}s."
+            )
+        if (
+            estimate.estimated_wall_clock_sec is not None
+            and config.max_wall_clock_sec_per_job is not None
+            and estimate.estimated_wall_clock_sec > config.max_wall_clock_sec_per_job
+        ):
+            raise ExecutionBudgetError(
+                f"refusing {operation!r}: estimated wall-clock "
+                f"{estimate.estimated_wall_clock_sec}s exceeds the configured per-job "
+                f"limit of {config.max_wall_clock_sec_per_job}s."
+            )
+    if config.max_cumulative_gpu_runtime_sec_per_day is not None:
+        estimated_sec = estimate.estimated_wall_clock_sec if estimate is not None else 0
+        if (current_cumulative_gpu_runtime_sec_today + (estimated_sec or 0)) > config.max_cumulative_gpu_runtime_sec_per_day:
+            raise ExecutionBudgetError(
+                f"refusing {operation!r}: today's GPU runtime "
+                f"{current_cumulative_gpu_runtime_sec_today}s + estimated {estimated_sec or 0}s "
+                f"would exceed the configured per-day limit of "
+                f"{config.max_cumulative_gpu_runtime_sec_per_day}s."
+            )
+    if retry_count > config.max_retry_count:
+        raise ExecutionBudgetError(
+            f"refusing {operation!r}: retry_count={retry_count} exceeds the configured "
+            f"max_retry_count={config.max_retry_count} (default 0 -- automatic "
+            "retry-from-scratch requires explicit future authorization, see Phase J "
+            "authorization section 13)."
+        )
+    if config.min_free_disk_gb is not None:
+        if current_free_disk_gb is None:
+            raise ExecutionBudgetError(
+                f"refusing {operation!r}: min_free_disk_gb={config.min_free_disk_gb} is "
+                "configured but current_free_disk_gb was not supplied -- fail closed rather "
+                "than assume disk space is fine."
+            )
+        if current_free_disk_gb < config.min_free_disk_gb:
+            raise ExecutionBudgetError(
+                f"refusing {operation!r}: {current_free_disk_gb}GB free disk is below the "
+                f"configured floor of {config.min_free_disk_gb}GB."
+            )
+    if config.min_free_ram_gb is not None:
+        if current_free_ram_gb is None:
+            raise ExecutionBudgetError(
+                f"refusing {operation!r}: min_free_ram_gb={config.min_free_ram_gb} is "
+                "configured but current_free_ram_gb was not supplied -- fail closed rather "
+                "than assume RAM is fine."
+            )
+        if current_free_ram_gb < config.min_free_ram_gb:
+            raise ExecutionBudgetError(
+                f"refusing {operation!r}: {current_free_ram_gb}GB free RAM is below the "
+                f"configured floor of {config.min_free_ram_gb}GB."
             )
