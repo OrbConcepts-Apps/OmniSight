@@ -55,6 +55,7 @@ record's proposal payload doesn't match its recorded `frozen_hash`.
 from __future__ import annotations
 
 import hashlib
+import itertools
 import json
 import re
 from dataclasses import asdict, dataclass, field, fields, replace
@@ -254,6 +255,21 @@ class ExperimentProposal:
     external_upload_approved: bool = False
     mac_iphone_deployment_approved: bool = False
     signing_distribution_change_approved: bool = False
+    # OMNISIGHT_PILOT_001_COLLECTION_AUTHORIZATION_AUDIT.md: a DISTINCT gate
+    # from private_user_data_use_approved. private_user_data_use_approved
+    # means "may this private data be USED for the research purpose EXP-0006
+    # governs (including later training, once new_training_approved is ALSO
+    # granted)" -- it says nothing about whether new private data may be
+    # COLLECTED in the first place. staged_pilot_collection_approved is
+    # narrower and earlier in the pipeline: permission to perform ONE
+    # specifically-scoped staged/consented collection (bound, at admission
+    # time, to a pilot id + frozen pilot-plan hash -- see
+    # research/datasets/collection_authorization.py). Granting it implies
+    # NONE of: private-data training use, new_training_approved, external
+    # upload, device validation, production modification, CoreML
+    # replacement, or signing/distribution changes -- each of those remains
+    # its own independent flag, never inferred from this one.
+    staged_pilot_collection_approved: bool = False
 
     # -- Rejected-hypothesis acknowledgment (Phase F item #8) --
     acknowledges_rejected_hypothesis_ids: tuple = ()
@@ -312,6 +328,7 @@ def _proposal_hash(proposal: ExperimentProposal, *, exclude: frozenset = frozens
 _FIELDS_ADDED_AFTER_PHASE_F_FREEZE: dict = {
     "coreml_replacement_required": False,
     "signing_distribution_change_required": False,
+    "staged_pilot_collection_approved": False,
 }
 
 
@@ -370,26 +387,37 @@ class ExperimentSpec:
         does not match the hash recorded at freeze time.
 
         Tolerates additive schema evolution (Phase-I CANDIDATE-0002
-        admission-boundary audit): if a field in
+        admission-boundary audit, extended for the OMNISIGHT-PILOT-001
+        collection-authorization gate): if a field in
         _FIELDS_ADDED_AFTER_PHASE_F_FREEZE didn't exist when this record was
         originally frozen, its value loads as the dataclass default -- that
-        alone must never be mistaken for tampering. The hash is recomputed
-        with those fields excluded and compared again ONLY as a fallback;
-        if the loaded value for any such field differs from its default,
-        this fallback does not apply and a genuine mismatch still raises."""
+        alone must never be mistaken for tampering.
+
+        A record frozen/amended at different points in this codebase's own
+        history may have existed AFTER some tolerated fields were already
+        added but BEFORE others (e.g. EXP-0006 was registered/amended after
+        coreml_replacement_required/signing_distribution_change_required
+        already existed, but before staged_pilot_collection_approved did)
+        -- so this tries every SUBSET of the currently-at-default tolerated
+        fields as a candidate exclusion set, not an all-or-nothing exclude-
+        everything fallback. Any single matching subset is accepted; if the
+        loaded value for a tolerated field differs from its default, that
+        field is never included in any candidate subset, so a genuine
+        mismatch on a real (non-default) field still always raises."""
         if self.frozen_hash is None:
             return
         current = _proposal_hash(self.proposal)
         if current == self.frozen_hash:
             return
-        at_default = all(
-            getattr(self.proposal, name, default) == default
-            for name, default in _FIELDS_ADDED_AFTER_PHASE_F_FREEZE.items()
-        )
-        if at_default:
-            legacy = _proposal_hash(self.proposal, exclude=frozenset(_FIELDS_ADDED_AFTER_PHASE_F_FREEZE))
-            if legacy == self.frozen_hash:
-                return
+        candidates = [
+            name for name, default in _FIELDS_ADDED_AFTER_PHASE_F_FREEZE.items()
+            if getattr(self.proposal, name, default) == default
+        ]
+        for r in range(len(candidates) + 1):
+            for subset in itertools.combinations(candidates, r):
+                legacy = _proposal_hash(self.proposal, exclude=frozenset(subset))
+                if legacy == self.frozen_hash:
+                    return
         raise FrozenProposalTamperedError(
             f"{self.proposal.experiment_id}: proposal payload does not match its "
             f"frozen_hash — recorded={self.frozen_hash} current={current}. A frozen "

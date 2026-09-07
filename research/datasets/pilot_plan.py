@@ -6,6 +6,7 @@ supports.
 
 from __future__ import annotations
 
+import hashlib
 import json
 from dataclasses import asdict, dataclass, field
 from pathlib import Path
@@ -31,6 +32,37 @@ class PilotSizePlan:
     frame_sampling_rule: str
 
 
+def pilot_plan_hash(plan: PilotSizePlan) -> str:
+    """Canonical SHA-256 of a pilot size plan's fields. Any change to
+    caps/sampling-rule/duration produces a different hash -- a collection
+    authorization scoped to one hash is invalidated the instant the plan
+    changes (Phase authorization section 10)."""
+    payload = json.dumps(asdict(plan), sort_keys=True)
+    return hashlib.sha256(payload.encode("utf-8")).hexdigest()
+
+
+# The canonical, frozen OMNISIGHT-PILOT-001 plan -- these are the ONLY
+# caps a collection authorization may be scoped against today. Increasing
+# any of them requires a NEW plan (and therefore a new hash), which in
+# turn requires a fresh, separate human authorization -- never a silent
+# scope increase under the same approval.
+OMNISIGHT_PILOT_001_PLAN = PilotSizePlan(
+    num_participants=6,
+    num_sessions=6,
+    num_sequences_per_session=4,
+    approx_sequence_duration_sec=20,
+    frame_sampling_rule=(
+        "1 fps baseline sampling, plus dense 5fps sampling within any pre-identified "
+        "hard-event window (motion-blur onset, occlusion transition, distance-band "
+        "change), capped at 40 sampled frames per sequence"
+    ),
+)
+OMNISIGHT_PILOT_001_PLAN_HASH = pilot_plan_hash(OMNISIGHT_PILOT_001_PLAN)
+OMNISIGHT_PILOT_001_MAX_SEQUENCES = (
+    OMNISIGHT_PILOT_001_PLAN.num_sessions * OMNISIGHT_PILOT_001_PLAN.num_sequences_per_session
+)  # 6 * 4 = 24
+
+
 @dataclass(frozen=True)
 class BaselineEvalConfig:
     """The FROZEN baseline evaluation procedure a future pilot would run
@@ -49,6 +81,7 @@ def build_empty_pilot_manifest(size_plan: PilotSizePlan) -> dict:
     fabricated captures by this function."""
     return {
         "pilot_id": PILOT_ID,
+        "pilot_plan_hash": pilot_plan_hash(size_plan),
         "schema_version": SCHEMA_VERSION,
         "is_training_data": PILOT_IS_TRAINING_DATA,
         "planned_size": asdict(size_plan),

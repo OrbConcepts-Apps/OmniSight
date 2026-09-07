@@ -8,6 +8,7 @@
   ],
   "is_training_data": false,
   "pilot_id": "OMNISIGHT-PILOT-001",
+  "pilot_plan_hash": "e0488d752b679be2e7d010be2f1ded8f75e3dc1f9d8bdfd85219905b1a257dc3",
   "planned_scenario_taxonomy": [
     "normal_illumination",
     "low_illumination",

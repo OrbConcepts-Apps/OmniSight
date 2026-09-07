@@ -40,7 +40,12 @@ class TestBuildAndValidate:
         result = validate(spec)
         assert [i.code for i in result.errors] == ["DUPLICATE_ID"]
 
-    def test_correct_three_pending_approvals(self):
+    def test_correct_pending_approvals(self):
+        """4 pending approvals as of the OMNISIGHT-PILOT-001
+        collection-authorization gate: the original 3 plus the new,
+        distinct staged-pilot-collection approval (data collection is a
+        separate gate from private-data USE, see
+        reports/phase_i/OMNISIGHT_PILOT_001_COLLECTION_AUTHORIZATION_AUDIT.md)."""
         spec = build_exp0006_spec()
         result = validate(spec)
         codes = {i.code for i in result.needs_human_approval}
@@ -48,6 +53,7 @@ class TestBuildAndValidate:
             "UNAPPROVED_MAC_IPHONE_DEPLOYMENT",
             "UNAPPROVED_NEW_TRAINING",
             "UNAPPROVED_PRIVATE_DATA_USE",
+            "UNAPPROVED_STAGED_PILOT_COLLECTION",
         }
 
     def test_not_queue_eligible(self):

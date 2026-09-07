@@ -452,6 +452,22 @@ def _validate_proposal(p: ExperimentProposal, result: ValidationResult, db, memo
             "NEEDS_HUMAN_APPROVAL", "UNAPPROVED_SIGNING_DISTRIBUTION_CHANGE",
             "signing_distribution_change_required=True but signing_distribution_change_approved=False.",
         )
+    # OMNISIGHT_PILOT_001_COLLECTION_AUTHORIZATION_AUDIT.md: a proposal
+    # that requires new PRIVATE_USER_DATA needs a SEPARATE, earlier
+    # approval to actually COLLECT it, distinct from
+    # private_user_data_use_approved (which governs USING already-collected
+    # private data for the research purpose, not collecting new data in the
+    # first place). Granting staged_pilot_collection_approved never implies
+    # private_user_data_use_approved or new_training_approved -- each stays
+    # its own independent, never-inferred flag.
+    if p.data_privacy_classification == "PRIVATE_USER_DATA" and not p.staged_pilot_collection_approved:
+        result.add(
+            "NEEDS_HUMAN_APPROVAL", "UNAPPROVED_STAGED_PILOT_COLLECTION",
+            "data_privacy_classification=PRIVATE_USER_DATA implies new private data must be "
+            "COLLECTED before it can exist, but staged_pilot_collection_approved=False -- this "
+            "is distinct from (and does not require) private_user_data_use_approved, which "
+            "governs USE of already-collected data, not collection itself.",
+        )
 
     # -- rejected-hypothesis acknowledgment (Phase F item #8) --
     conflicts = find_rejected_hypothesis_conflicts(p, memory_db)
