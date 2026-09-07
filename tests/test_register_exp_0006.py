@@ -109,14 +109,21 @@ class TestLiveRegistration:
         assert exp.execution_status == "BLOCKED"
         assert exp.research_verdict == "PENDING"
 
-    def test_frozen_hash_matches_preregistration(self):
+    def test_frozen_hash_traceable_to_preregistration(self):
+        """As registered (before EXP-0006 Amendment 001), the twin's hash
+        matched the original preregistration exactly. Amendment 001
+        (see tests/test_amend_exp_0006_001.py) intentionally changed the
+        twin's hash while leaving the preregistration untouched -- both
+        specs must still independently verify, and the preregistration's
+        hash remains the recorded ORIGINAL hash for history."""
         from research.backfill_experiment_specs import load_spec
 
         twin = load_spec("EXP-0006")
         preregistration = load_preregistration()
         twin.verify_integrity()
         preregistration.verify_integrity()
-        assert twin.frozen_hash == preregistration.frozen_hash
+        assert preregistration.frozen_hash == "e0b4a954e6a6ffb1c3bd067d8a10363dafe236a3c386d51949300a79a806289a"
+        assert len(twin.amendments) >= 1  # at least Amendment 001
 
     def test_all_approval_flags_false_on_twin_spec(self):
         from research.backfill_experiment_specs import load_spec

@@ -1,0 +1,32 @@
+{
+  "expected_logical_identifiers": [
+    "session_id",
+    "sequence_id",
+    "frame_id",
+    "environment_domain",
+    "device"
+  ],
+  "is_training_data": false,
+  "pilot_id": "OMNISIGHT-PILOT-001",
+  "planned_scenario_taxonomy": [
+    "normal_illumination",
+    "low_illumination",
+    "motion_blur",
+    "partial_occlusion",
+    "small_distant_person",
+    "clutter",
+    "unusual_assistive_viewpoint",
+    "indoor",
+    "outdoor_controlled",
+    "no_person_negative"
+  ],
+  "planned_size": {
+    "approx_sequence_duration_sec": 20,
+    "frame_sampling_rule": "1 fps baseline sampling, plus dense 5fps sampling within any pre-identified hard-event window (motion-blur onset, occlusion transition, distance-band change), capped at 40 sampled frames per sequence",
+    "num_participants": 6,
+    "num_sequences_per_session": 4,
+    "num_sessions": 6
+  },
+  "records": [],
+  "schema_version": "1.0"
+}
