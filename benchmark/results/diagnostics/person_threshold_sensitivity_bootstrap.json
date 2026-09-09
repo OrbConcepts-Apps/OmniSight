@@ -1,0 +1,166 @@
+{
+  "procedure": {
+    "resampling_unit": "image (all detections+GT for a sampled image travel together)",
+    "n_replicates": 2000,
+    "n_images": 380,
+    "seed": 20260909,
+    "person_thresholds_tested": [
+      0.4,
+      0.38,
+      0.36,
+      0.34,
+      0.32,
+      0.3
+    ],
+    "guardrail_floor": 0.757
+  },
+  "pre_registered_criterion": "Per grid point: ROBUST if guardrail_violation_rate<=0.05 AND 2.5th-percentile(delta person.recall vs 0.40)>0; FRAGILE if guardrail_violation_rate>0.05; else INCONCLUSIVE. Fixed before any replicate computed.",
+  "grid": {
+    "0.4": {
+      "hazard_precision": {
+        "mean": 0.8069331129289646,
+        "ci_2.5": 0.7576374745417516,
+        "ci_97.5": 0.8532761013776172
+      },
+      "person_recall": {
+        "mean": 0.21411149555393902,
+        "ci_2.5": 0.14869762885562143,
+        "ci_97.5": 0.2851215805471124
+      },
+      "person_precision": {
+        "mean": 0.6686903236228697,
+        "ci_2.5": 0.5254194487245335,
+        "ci_97.5": 0.8222362869198311
+      },
+      "recall_delta_vs_0.40": {
+        "mean": 0.0,
+        "ci_2.5": 0.0,
+        "ci_97.5": 0.0
+      },
+      "guardrail_violation_rate": 0.024,
+      "classification": "INCONCLUSIVE"
+    },
+    "0.38": {
+      "hazard_precision": {
+        "mean": 0.802435763976197,
+        "ci_2.5": 0.75,
+        "ci_97.5": 0.8520322714537719
+      },
+      "person_recall": {
+        "mean": 0.23398548626223278,
+        "ci_2.5": 0.16447258036029672,
+        "ci_97.5": 0.3095336481700118
+      },
+      "person_precision": {
+        "mean": 0.6629412754967314,
+        "ci_2.5": 0.5114460770246226,
+        "ci_97.5": 0.8219306106772499
+      },
+      "recall_delta_vs_0.40": {
+        "mean": 0.01987399070829378,
+        "ci_2.5": 0.0035714285714285865,
+        "ci_97.5": 0.04151647423261051
+      },
+      "guardrail_violation_rate": 0.042,
+      "classification": "ROBUST"
+    },
+    "0.36": {
+      "hazard_precision": {
+        "mean": 0.7909545363793318,
+        "ci_2.5": 0.734035304875329,
+        "ci_97.5": 0.8446462363673538
+      },
+      "person_recall": {
+        "mean": 0.2372896280361768,
+        "ci_2.5": 0.16717928496319662,
+        "ci_97.5": 0.31320868379177086
+      },
+      "person_precision": {
+        "mean": 0.6265556143187286,
+        "ci_2.5": 0.468076527110501,
+        "ci_97.5": 0.7966273476866697
+      },
+      "recall_delta_vs_0.40": {
+        "mean": 0.023178132482237806,
+        "ci_2.5": 0.006409744408945692,
+        "ci_97.5": 0.0452833475774111
+      },
+      "guardrail_violation_rate": 0.1255,
+      "classification": "FRAGILE"
+    },
+    "0.34": {
+      "hazard_precision": {
+        "mean": 0.7836677868419424,
+        "ci_2.5": 0.7240671444438568,
+        "ci_97.5": 0.838558103381267
+      },
+      "person_recall": {
+        "mean": 0.25717665958154606,
+        "ci_2.5": 0.18518518518518517,
+        "ci_97.5": 0.33520434677703737
+      },
+      "person_precision": {
+        "mean": 0.6152731111586839,
+        "ci_2.5": 0.45359897648891195,
+        "ci_97.5": 0.7843179513184584
+      },
+      "recall_delta_vs_0.40": {
+        "mean": 0.04306516402760703,
+        "ci_2.5": 0.02047194318166116,
+        "ci_97.5": 0.06962393288195466
+      },
+      "guardrail_violation_rate": 0.202,
+      "classification": "FRAGILE"
+    },
+    "0.32": {
+      "hazard_precision": {
+        "mean": 0.7765275086265433,
+        "ci_2.5": 0.7154283018591929,
+        "ci_97.5": 0.8345526652514031
+      },
+      "person_recall": {
+        "mean": 0.2637636007026989,
+        "ci_2.5": 0.1930930777277482,
+        "ci_97.5": 0.34294871794871795
+      },
+      "person_precision": {
+        "mean": 0.5978114162396316,
+        "ci_2.5": 0.44573010351264214,
+        "ci_97.5": 0.7619480519480517
+      },
+      "recall_delta_vs_0.40": {
+        "mean": 0.04965210514875986,
+        "ci_2.5": 0.02520744699553461,
+        "ci_97.5": 0.07913940545676665
+      },
+      "guardrail_violation_rate": 0.2665,
+      "classification": "FRAGILE"
+    },
+    "0.3": {
+      "hazard_precision": {
+        "mean": 0.7664143023027497,
+        "ci_2.5": 0.703983238456673,
+        "ci_97.5": 0.8232909379968204
+      },
+      "person_recall": {
+        "mean": 0.2804275321441605,
+        "ci_2.5": 0.20551016369342118,
+        "ci_97.5": 0.36208982202447154
+      },
+      "person_precision": {
+        "mean": 0.5787226676338278,
+        "ci_2.5": 0.4333139534883721,
+        "ci_97.5": 0.74
+      },
+      "recall_delta_vs_0.40": {
+        "mean": 0.06631603659022153,
+        "ci_2.5": 0.036515786687613135,
+        "ci_97.5": 0.10257352941176465
+      },
+      "guardrail_violation_rate": 0.369,
+      "classification": "FRAGILE"
+    }
+  },
+  "any_robust_threshold_found": true,
+  "safest_robust_threshold": 0.38
+}

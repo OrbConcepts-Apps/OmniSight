@@ -1312,6 +1312,99 @@ def run_exp_0009(exp: Experiment, exp_dir: Path) -> ExperimentRunResult:
     )
 
 
+def _sensitivity_path() -> Path:
+    return REPO_ROOT / "benchmark" / "results" / "diagnostics" / "person_threshold_sensitivity_bootstrap.json"
+
+
+@dataclass
+class _CompoundCriterionPolicy(EvaluationPolicy):
+    """EXP-0010's hypothesis is compound: does ANY threshold in the finer
+    sensitivity grid satisfy BOTH already-established standards at once --
+    EXP-0009's guardrail-robustness rule (violation_rate<=0.05, fixed before
+    EXP-0009 ran) AND this whole lab's minimum-meaningful-recall-delta
+    convention (>=0.03, fixed since EXP-0001). Combining two PRE-EXISTING
+    thresholds is not inventing a new significance criterion after seeing
+    this result -- neither number was chosen or adjusted based on this
+    experiment's own data."""
+
+    min_meaningful_delta_for_robust: float = 0.03
+
+    def evaluate(self, baseline_metrics: dict, candidate_metrics: dict) -> Verdict:
+        grid = candidate_metrics["sensitivity"]["grid"]
+        qualifying = [
+            pt for pt, g in grid.items()
+            if g["classification"] == "ROBUST" and g["recall_delta_mean"] >= self.min_meaningful_delta_for_robust
+        ]
+        robust_any = [pt for pt, g in grid.items() if g["classification"] == "ROBUST"]
+        if qualifying:
+            return Verdict(
+                result="PASSED",
+                reasons=[f"threshold(s) {qualifying} are both ROBUST (guardrail_violation_rate<=0.05) "
+                         f"and clear the established minimum meaningful recall delta (>= "
+                         f"{self.min_meaningful_delta_for_robust})."],
+            )
+        if robust_any:
+            return Verdict(
+                result="FAILED",
+                reasons=[f"threshold(s) {robust_any} are ROBUST on the guardrail, but their mean "
+                         f"recall delta falls short of the established minimum meaningful delta "
+                         f"({self.min_meaningful_delta_for_robust}) -- robustness and meaningfulness "
+                         "are in tension across the tested grid; no threshold clears both."],
+            )
+        return Verdict(
+            result="FAILED",
+            reasons=["no threshold in the tested grid is ROBUST on the guardrail at all "
+                     "(all candidates below the control are FRAGILE or INCONCLUSIVE)."],
+        )
+
+
+def run_exp_0010(exp: Experiment, exp_dir: Path) -> ExperimentRunResult:
+    """EXP-0010: threshold-sensitivity bootstrap, the direct follow-up to
+    EXP-0009's FRAGILE finding -- does a MORE conservative person_threshold
+    (between 0.30 and 0.40) exist that is both robust on the guardrail and
+    still clears the lab's established minimum-meaningful-recall-delta bar?
+    No new inference, no training, no private data -- reuses the same
+    conf=0.01 capture, same image-level bootstrap methodology, same fixed
+    seed as EXP-0009, extended to a finer grid computed in one pass."""
+    sens_path = _sensitivity_path()
+    if not sens_path.exists():
+        raise RunnerError(f"missing evidence file: {sens_path}")
+    sens = json.loads(sens_path.read_text(encoding="utf-8"))
+
+    grid_for_policy = {
+        pt: {"classification": g["classification"], "recall_delta_mean": g["recall_delta_vs_0.40"]["mean"]}
+        for pt, g in sens["grid"].items()
+    }
+
+    baseline_metrics = {"sensitivity": {"grid": {}}}
+    candidate_metrics = {"sensitivity": {"grid": grid_for_policy, "full_grid": sens["grid"]}}
+
+    policy = _CompoundCriterionPolicy(primary_metric="sensitivity.grid")  # unused by the override; required field
+
+    notes = (
+        f"Threshold-sensitivity bootstrap ({sens['procedure']['n_replicates']} replicates, seed="
+        f"{sens['procedure']['seed']}) over {sens['procedure']['person_thresholds_tested']}. "
+        f"safest_robust_threshold={sens['safest_robust_threshold']}. Evidence source: "
+        f"{sens_path.relative_to(REPO_ROOT)}. Direct follow-up to EXP-0009's FRAGILE finding on "
+        "person_threshold=0.30 -- tests whether a more conservative point on the grid is both "
+        "robust and still meaningful, per the lab's own pre-existing (not newly invented) standards."
+    )
+
+    return ExperimentRunResult(
+        baseline_metrics=baseline_metrics,
+        candidate_metrics=candidate_metrics,
+        policy=policy,
+        verdict_interpretation={"PASSED": "PASS", "FAILED": "FAIL", "INCONCLUSIVE": "INCONCLUSIVE"},
+        notes=notes,
+        result_run_id=f"EXP-0009+sensitivity_grid_n={sens['procedure']['n_replicates']}_seed={sens['procedure']['seed']}",
+        log_lines=[
+            f"Loaded {sens_path}",
+            f"grid classifications: { {pt: g['classification'] for pt, g in sens['grid'].items()} }",
+            f"safest_robust_threshold={sens['safest_robust_threshold']}",
+        ],
+    )
+
+
 RUNNERS = {
     "EXP-0001": run_exp_0001,
     "EXP-0002": run_exp_0002,
@@ -1319,6 +1412,7 @@ RUNNERS = {
     "EXP-0004": run_exp_0004,
     "EXP-0005": run_exp_0005,
     "EXP-0009": run_exp_0009,
+    "EXP-0010": run_exp_0010,
     "EXP-0007": run_exp_0007,
     # EXP-0008: identical design to EXP-0007 (a clean re-run after EXP-0007's
     # own branch run was REJECTED for a structural reason -- stale pytest
