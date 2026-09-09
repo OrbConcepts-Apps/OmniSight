@@ -1,0 +1,78 @@
+[2026-09-09T22:55:21.903445+00:00] branch experiment/EXP-0007 created from 07e02291cd91138908df95b334b3c9313ac7b6ef
+Loaded C:\Users\Armaa\Downloads\OmniSight\benchmark\results\diagnostics\per_class_threshold_sweep.json
+pre-registered selection rule: Among PERSON_THRESHOLDS whose hazard.precision >= baseline_hazard_precision - 0.05, pick the one with highest person.recall; if none qualify, representative=0.40 (no viable candidate).
+representative person_threshold=0.3
+baseline (person=0.4) hazard: {'precision': 0.8070175438596491, 'recall': 0.4804177545691906, 'f1': 0.602291325695581, 'tp': 368, 'fp': 88, 'fn': 398, 'num_gt': 766, 'num_predictions': 456}
+candidate (person=0.3) hazard: {'precision': 0.766798418972332, 'recall': 0.5065274151436031, 'f1': 0.610062893081761, 'tp': 388, 'fp': 118, 'fn': 378, 'num_gt': 766, 'num_predictions': 506}
+baseline (person=0.4) person: {'precision': 0.6666666666666666, 'recall': 0.21122112211221122, 'tp': 64, 'fp': 32, 'fn': 239, 'num_gt': 303}
+candidate (person=0.3) person: {'precision': 0.5753424657534246, 'recall': 0.27722772277227725, 'tp': 84, 'fp': 62, 'fn': 219, 'num_gt': 303}
+[2026-09-09T22:55:51.600717+00:00] pytest exit_ok=False
+........................................................................ [  6%]
+........................................................................ [ 13%]
+........................................................................ [ 20%]
+........................................................................ [ 27%]
+........................................................................ [ 34%]
+...............................F........................................ [ 41%]
+........................................................................ [ 48%]
+........................................................................ [ 55%]
+........................................................................ [ 62%]
+........................................................................ [ 69%]
+........................................................................ [ 76%]
+........................................................................ [ 83%]
+.............................................................F.......... [ 90%]
+..F..................................................................... [ 97%]
+...............................                                          [100%]
+================================== FAILURES ===================================
+_ TestExp0001Through0005Integrity.test_exp_0006_registered_blocked_no_exp_0007 _
+
+self = <tests.test_experiment_immutability.TestExp0001Through0005Integrity object at 0x00000194C32A1A10>
+
+    def test_exp_0006_registered_blocked_no_exp_0007(self):
+        """EXP-0006 was authorized and registered (research.register_exp_0006,
+        reports/phase_i/EXP0006_REGISTRATION_REPORT.md) -- this test's
+        invariant updates accordingly: EXP-0006 now exists but must be
+        BLOCKED (registered, not executable), and no EXP-0007 exists."""
+        if not DB_PATH.exists():
+            pytest.skip("research/omnilab.db not present in this environment")
+        from research.db import ExperimentNotFoundError
+    
+        db = OmniLabDB()
+        try:
+            exp = db.get_experiment("EXP-0006")
+            assert exp.execution_status == "BLOCKED"
+            assert exp.research_verdict == "PENDING"
+>           with pytest.raises(ExperimentNotFoundError):
+E           Failed: DID NOT RAISE ExperimentNotFoundError
+
+tests\test_experiment_immutability.py:195: Failed
+______ TestLiveRegistration.test_db_contains_exactly_six_ids_no_exp_0007 ______
+
+self = <tests.test_register_exp_0006.TestLiveRegistration object at 0x00000194F19AA350>
+
+    def test_db_contains_exactly_six_ids_no_exp_0007(self):
+        with OmniLabDB() as db:
+            ids = {e.experiment_id for e in db.list_experiments()}
+>       assert ids == {"EXP-0001", "EXP-0002", "EXP-0003", "EXP-0004", "EXP-0005", "EXP-0006"}
+E       AssertionError: assert {'EXP-0001', ...XP-0006', ...} == {'EXP-0001', ...', 'EXP-0006'}
+E         
+E         Extra items in the left set:
+E         'EXP-0007'
+E         Use -v to get more diff
+
+tests\test_register_exp_0006.py:96: AssertionError
+________________ TestLiveRegistration.test_no_exp_0007_exists _________________
+
+self = <tests.test_register_exp_0006.TestLiveRegistration object at 0x00000194F19BA410>
+
+    def test_no_exp_0007_exists(self):
+        with OmniLabDB() as db:
+>           with pytest.raises(ExperimentNotFoundError):
+E           Failed: DID NOT RAISE ExperimentNotFoundError
+
+tests\test_register_exp_0006.py:211: Failed
+=========================== short test summary info ===========================
+FAILED tests/test_experiment_immutability.py::TestExp0001Through0005Integrity::test_exp_0006_registered_blocked_no_exp_0007
+FAILED tests/test_register_exp_0006.py::TestLiveRegistration::test_db_contains_exactly_six_ids_no_exp_0007
+FAILED tests/test_register_exp_0006.py::TestLiveRegistration::test_no_exp_0007_exists
+3 failed, 1036 passed in 28.53s
+

@@ -1,0 +1,16 @@
+experiment_id: EXP-0008
+experiment_family: threshold_postprocessing
+independent_variable: person_confidence_threshold (evaluated post-hoc from the existing
+  conf=0.01 capture; all other hazard classes and benchmark/config.py's real conf=0.4
+  are unchanged; PERSON_THRESHOLDS=[0.40,0.30,0.20,0.10] pre-registered in benchmark/diagnostics/per_class_threshold_sweep.py
+  before any per-class-isolated result was computed, and unchanged since EXP-0007)
+controls:
+  model: yolov8m-oiv7.pt (same weights as the canonical baseline)
+  manifest: data/manifests/eval_manifest.jsonl (unchanged)
+  iou_threshold: 0.7
+  imgsz: 640
+  other_hazard_class_threshold: 0.4
+configuration: {}
+baseline_run_id: RUN-20260904-002
+validation_requirement: OFFLINE_SIMULATABLE
+estimated_cost: 0.0
