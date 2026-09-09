@@ -1,0 +1,8 @@
+[2026-09-09T23:52:05.871681+00:00] branch experiment/EXP-0011 created from 6876fd91514ae02cdcc6dabe263347c4da38a66b
+Loaded C:\Users\Armaa\Downloads\OmniSight\benchmark\results\diagnostics\nms_iou_sweep.json
+grid summary: {'0.9': {'person_recall_delta': 0.0, 'guardrail_satisfied': True, 'meaningful_delta': False, 'point_estimate_pass': False}, '0.8': {'person_recall_delta': 0.0, 'guardrail_satisfied': True, 'meaningful_delta': False, 'point_estimate_pass': False}, '0.7': {'person_recall_delta': 0.0, 'guardrail_satisfied': True, 'meaningful_delta': False, 'point_estimate_pass': False}, '0.6': {'person_recall_delta': 0.0, 'guardrail_satisfied': True, 'meaningful_delta': False, 'point_estimate_pass': False}, '0.5': {'person_recall_delta': 0.0, 'guardrail_satisfied': True, 'meaningful_delta': False, 'point_estimate_pass': False}}
+representative iou=0.7
+TRUE_DETECTOR_MISS recovery: {'denominator': 92, 'recovered_strict_iou_ge_0.5': 1, 'spatially_associated_iou_ge_0.3': 1}
+[2026-09-09T23:52:42.258278+00:00] pytest exit_ok=True
+[2026-09-09T23:52:42.358070+00:00] evaluation_policy verdict=INCONCLUSIVE -> research_verdict=INCONCLUSIVE
+[2026-09-09T23:52:42.358070+00:00] verdict explanation: INCONCLUSIVE: primary metric 'person.recall' delta (+0.0000) is below the minimum meaningful delta (0.03)

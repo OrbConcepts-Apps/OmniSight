@@ -111,3 +111,11 @@ WebSearch, never training-data recall alone) — this is not started.
 - Research verdict: INCONCLUSIVE
 - Hypothesis: A different model checkpoint/architecture (e.g. YOLO26n, referenced but never actually shipped per OMNISIGHT_ARCHITECTURE.md section 3) would improve Person and/or Stairs recall over the current yolov8m-oiv7 baseline.
 - Reasons: primary metric 'person.recall' delta (+0.0198) is below the minimum meaningful delta (0.03)
+
+## EXP-0011 (2026-09-09T23:52:42.461546+00:00)
+
+- Family: threshold_postprocessing
+- Execution status: COMPLETED
+- Research verdict: INCONCLUSIVE
+- Hypothesis: Changing the model's internal NMS IoU threshold (production=0.7) -- confidence threshold held fixed at the production value (0.4) -- can recover meaningful Person recall (>= +0.03 vs the iou=0.7 control) while keeping hazard-aggregate precision at or above the standard guardrail (>= 0.757). Mechanism: NMS chooses among ALREADY-PROPOSED overlapping candidate boxes of the same class; it cannot invent a detection where the raw detector proposed nothing. It can only plausibly help by letting a currently-suppressed second detection near an ADJACENT person survive (raising IoU, less aggressive suppression) -- it has no plausible channel to recover a genuine 'detector saw nothing' TRUE_DETECTOR_MISS case, and lowering IoU (more aggressive suppression) can only remove surviving boxes, never add one.
+- Reasons: primary metric 'person.recall' delta (+0.0000) is below the minimum meaningful delta (0.03)

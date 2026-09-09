@@ -1,0 +1,64 @@
+{
+  "baseline_metrics": {
+    "hazard": {
+      "precision": 0.8070175438596491,
+      "recall": 0.4804177545691906
+    },
+    "person": {
+      "recall": 0.21122112211221122,
+      "precision": 0.6666666666666666,
+      "num_gt": 303
+    },
+    "latency": {
+      "p95_ms": 21.89389999875857
+    }
+  },
+  "candidate_metrics": {
+    "hazard": {
+      "precision": 0.8070175438596491,
+      "recall": 0.4804177545691906
+    },
+    "person": {
+      "recall": 0.21122112211221122,
+      "precision": 0.6666666666666666,
+      "num_gt": 303
+    },
+    "latency": {
+      "p95_ms": 21.89389999875857
+    }
+  },
+  "raw_evaluation_policy_verdict": "INCONCLUSIVE",
+  "execution_status": "COMPLETED",
+  "research_verdict": "INCONCLUSIVE",
+  "guardrail_results": [
+    {
+      "metric": "hazard.precision",
+      "value": 0.8070175438596491,
+      "threshold": 0.757017543859649,
+      "comparator": "gte",
+      "satisfied": true,
+      "margin": 0.050000000000000044
+    },
+    {
+      "metric": "hazard.recall",
+      "value": 0.4804177545691906,
+      "threshold": 0.4604177545691906,
+      "comparator": "gte",
+      "satisfied": true,
+      "margin": 0.020000000000000018
+    },
+    {
+      "metric": "latency.p95_ms",
+      "value": 21.89389999875857,
+      "threshold": 32.840849998137855,
+      "comparator": "lte",
+      "satisfied": true,
+      "margin": 10.946949999379285
+    }
+  ],
+  "reasons": [
+    "primary metric 'person.recall' delta (+0.0000) is below the minimum meaningful delta (0.03)"
+  ],
+  "notes": "NMS/inference IoU sensitivity sweep, real non-training inference over the 380-image eval set. Grid=[0.9, 0.8, 0.7, 0.6, 0.5], confidence fixed at 0.4. Representative candidate: iou=0.7 (pre-registered rule: highest person.recall among grid points clearing the guardrail, excluding the iou=0.7 control). TRUE_DETECTOR_MISS recovery at this candidate: 1/92 strict (IoU>=0.5), 1/92 spatially-associated (IoU>=0.3). duplicate_person_pairs=0 (control: 0). Evidence source: benchmark\\results\\diagnostics\\nms_iou_sweep.json. Confidence threshold fixed at the production value throughout -- not jointly optimized with the now-closed EXP-0007-0010 Person-threshold branch.",
+  "result_run_id": "RUN-20260904-002+nms_iou_sweep@iou=0.7"
+}
