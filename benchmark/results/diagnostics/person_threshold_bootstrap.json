@@ -1,0 +1,46 @@
+{
+  "procedure": {
+    "resampling_unit": "image (all detections+GT for a sampled image travel together)",
+    "n_replicates": 2000,
+    "n_images": 380,
+    "seed": 20260909,
+    "rng": "numpy.random.default_rng",
+    "person_threshold_tested": 0.3,
+    "baseline_threshold": 0.4,
+    "guardrail_floor": 0.757,
+    "recomputed_from_scratch_per_replicate": true
+  },
+  "pre_registered_robustness_criterion": "ROBUST if guardrail_violation_rate <= 0.05 AND 2.5th-percentile(delta person.recall) > 0; FRAGILE if guardrail_violation_rate > 0.05; else INCONCLUSIVE. Fixed before any replicate was computed.",
+  "metrics_at_person_threshold_0.30": {
+    "hazard_precision": {
+      "mean": 0.7664143023027497,
+      "ci_2.5": 0.703983238456673,
+      "ci_97.5": 0.8232909379968204
+    },
+    "person_recall": {
+      "mean": 0.2804275321441605,
+      "ci_2.5": 0.20551016369342118,
+      "ci_97.5": 0.36208982202447154
+    },
+    "person_precision": {
+      "mean": 0.5787226676338278,
+      "ci_2.5": 0.4333139534883721,
+      "ci_97.5": 0.74
+    }
+  },
+  "delta_vs_baseline_0.40": {
+    "person_recall_delta": {
+      "mean": 0.06631603659022153,
+      "ci_2.5": 0.036515786687613135,
+      "ci_97.5": 0.10257352941176465
+    },
+    "hazard_precision_delta": {
+      "mean": -0.04051881062621488,
+      "ci_2.5": -0.07120276415764867,
+      "ci_97.5": -0.015299815165622344
+    }
+  },
+  "guardrail_violation_rate": 0.369,
+  "person_recall_delta_ge_0.03_rate": 0.994,
+  "classification": "FRAGILE"
+}

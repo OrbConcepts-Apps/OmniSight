@@ -1198,12 +1198,127 @@ def run_exp_0007(exp: Experiment, exp_dir: Path) -> ExperimentRunResult:
     )
 
 
+def _bootstrap_path() -> Path:
+    return REPO_ROOT / "benchmark" / "results" / "diagnostics" / "person_threshold_bootstrap.json"
+
+
+@dataclass
+class _RobustnessPolicy(EvaluationPolicy):
+    """Not a guardrail-comparison policy (EXP-0009 has no baseline-vs-
+    candidate point-estimate framing to plug into EvaluationPolicy's generic
+    engine) -- overrides evaluate() to apply EXP-0009's own preregistered
+    3-way robustness criterion directly (see
+    benchmark/diagnostics/person_threshold_bootstrap.py's module docstring,
+    fixed before any bootstrap replicate was computed):
+      ROBUST  if guardrail_violation_rate <= 0.05 AND recall_delta_ci_low > 0
+      FRAGILE if guardrail_violation_rate > 0.05
+      else INCONCLUSIVE
+    """
+
+    guardrail_violation_rate_max: float = 0.05
+
+    def evaluate(self, baseline_metrics: dict, candidate_metrics: dict) -> Verdict:
+        violation_rate = candidate_metrics["robustness"]["guardrail_violation_rate"]
+        ci_low = candidate_metrics["robustness"]["recall_delta_ci_low"]
+        if violation_rate > self.guardrail_violation_rate_max:
+            return Verdict(
+                result="FAILED",
+                reasons=[
+                    f"FRAGILE: bootstrap guardrail_violation_rate={violation_rate:.3f} exceeds the "
+                    f"pre-registered tolerance ({self.guardrail_violation_rate_max}) -- the "
+                    "hazard-precision guardrail is not reliably held under image-level resampling."
+                ],
+            )
+        if ci_low > 0.0:
+            return Verdict(
+                result="PASSED",
+                reasons=[
+                    f"ROBUST: guardrail_violation_rate={violation_rate:.3f} <= "
+                    f"{self.guardrail_violation_rate_max} and the recall-improvement 2.5th "
+                    f"percentile ({ci_low:.4f}) is > 0."
+                ],
+            )
+        return Verdict(
+            result="INCONCLUSIVE",
+            reasons=[
+                f"guardrail_violation_rate={violation_rate:.3f} is within tolerance, but the "
+                f"recall-improvement 2.5th percentile ({ci_low:.4f}) is not > 0 -- the recall "
+                "gain's direction is not robust at the 95% level."
+            ],
+        )
+
+
+def run_exp_0009(exp: Experiment, exp_dir: Path) -> ExperimentRunResult:
+    """EXP-0009: post-hoc image-level bootstrap robustness analysis of
+    EXP-0008's person_threshold=0.30 PASS. Does NOT retroactively alter
+    EXP-0008's own deterministic result -- EXP-0008 preregistered no
+    uncertainty criterion, and none is invented for it after the fact. This
+    is a separate, explicitly-labeled experiment record with its OWN
+    preregistered robustness criterion (fixed in
+    benchmark/diagnostics/person_threshold_bootstrap.py before any replicate
+    was computed).
+
+    No new inference, no training, no private data -- reuses the same
+    conf=0.01 capture EXP-0001/0007/0008 already use, resampled 2000x at the
+    image level (fixed seed, recorded), recomputing metrics from scratch
+    each time (never bootstrapping already-aggregated point estimates).
+    """
+    boot_path = _bootstrap_path()
+    if not boot_path.exists():
+        raise RunnerError(f"missing evidence file: {boot_path}")
+    boot = json.loads(boot_path.read_text(encoding="utf-8"))
+
+    violation_rate = boot["guardrail_violation_rate"]
+    ci_low = boot["delta_vs_baseline_0.40"]["person_recall_delta"]["ci_2.5"]
+    ci_high = boot["delta_vs_baseline_0.40"]["person_recall_delta"]["ci_97.5"]
+
+    baseline_metrics = {"robustness": {"guardrail_violation_rate": 0.0, "recall_delta_ci_low": 0.0}}
+    candidate_metrics = {
+        "robustness": {
+            "guardrail_violation_rate": violation_rate,
+            "recall_delta_ci_low": ci_low,
+            "recall_delta_ci_high": ci_high,
+            "hazard_precision_mean": boot["metrics_at_person_threshold_0.30"]["hazard_precision"]["mean"],
+            "person_recall_delta_ge_0.03_rate": boot["person_recall_delta_ge_0.03_rate"],
+        }
+    }
+
+    policy = _RobustnessPolicy(primary_metric="robustness.recall_delta_ci_low")
+
+    notes = (
+        f"Image-level bootstrap ({boot['procedure']['n_replicates']} replicates, seed="
+        f"{boot['procedure']['seed']}) of EXP-0008's person_threshold=0.30 result. "
+        f"guardrail_violation_rate={violation_rate:.3f} (fraction of replicates with "
+        f"hazard.precision < {boot['procedure']['guardrail_floor']}); recall-improvement 95% "
+        f"CI=[{ci_low:.4f}, {ci_high:.4f}]. Evidence source: {boot_path.relative_to(REPO_ROOT)}. "
+        "Post-hoc robustness analysis -- EXP-0008's own deterministic PASS is unchanged and "
+        "not retroactively altered by this record."
+    )
+
+    return ExperimentRunResult(
+        baseline_metrics=baseline_metrics,
+        candidate_metrics=candidate_metrics,
+        policy=policy,
+        verdict_interpretation={"PASSED": "PASS", "FAILED": "FAIL", "INCONCLUSIVE": "INCONCLUSIVE"},
+        notes=notes,
+        result_run_id=f"EXP-0008+bootstrap_n={boot['procedure']['n_replicates']}_seed={boot['procedure']['seed']}",
+        log_lines=[
+            f"Loaded {boot_path}",
+            f"pre-registered criterion: {boot['pre_registered_robustness_criterion']}",
+            f"guardrail_violation_rate={violation_rate}",
+            f"recall_delta_ci=[{ci_low}, {ci_high}]",
+            f"bootstrap classification={boot['classification']}",
+        ],
+    )
+
+
 RUNNERS = {
     "EXP-0001": run_exp_0001,
     "EXP-0002": run_exp_0002,
     "EXP-0003": run_exp_0003,
     "EXP-0004": run_exp_0004,
     "EXP-0005": run_exp_0005,
+    "EXP-0009": run_exp_0009,
     "EXP-0007": run_exp_0007,
     # EXP-0008: identical design to EXP-0007 (a clean re-run after EXP-0007's
     # own branch run was REJECTED for a structural reason -- stale pytest
