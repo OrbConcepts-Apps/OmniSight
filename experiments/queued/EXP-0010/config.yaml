@@ -1,0 +1,15 @@
+experiment_id: EXP-0010
+experiment_family: threshold_postprocessing
+independent_variable: person_confidence_threshold, swept finely between 0.30 and 0.40
+  (benchmark/diagnostics/person_threshold_sensitivity_bootstrap.py, grid fixed before
+  any replicate was computed)
+controls:
+  model: yolov8m-oiv7.pt (same weights as the canonical baseline)
+  manifest: data/manifests/eval_manifest.jsonl (unchanged, resampled at image level)
+  n_replicates: 2000
+  seed: 20260909
+  other_hazard_class_threshold: 0.4
+configuration: {}
+baseline_run_id: RUN-20260904-002
+validation_requirement: OFFLINE_SIMULATABLE
+estimated_cost: 0.0
