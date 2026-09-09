@@ -1105,10 +1105,104 @@ def _write_model_variant_report(out_path: Path, analysis: dict, per_candidate_ve
     out_path.write_text("\n".join(lines), encoding="utf-8")
 
 
+def _per_class_threshold_sweep_path() -> Path:
+    return REPO_ROOT / "benchmark" / "results" / "diagnostics" / "per_class_threshold_sweep.json"
+
+
+def run_exp_0007(exp: Experiment, exp_dir: Path) -> ExperimentRunResult:
+    """EXP-0007 (threshold_postprocessing, per-class confidence threshold
+    policy). Orthogonal to EXP-0001's GLOBAL threshold sweep: only the
+    Person class's confidence threshold is varied; every other hazard class
+    stays fixed at the production 0.4 cutoff.
+
+    Does NOT run new inference -- reuses
+    benchmark/results/diagnostics/per_class_threshold_sweep.json
+    (benchmark/diagnostics/per_class_threshold_sweep.py), built from the
+    SAME already-approved conf=0.01 capture EXP-0001 uses
+    (low_conf_predictions.jsonl). "Candidate" here is the representative
+    grid point selected by that script's PRE-REGISTERED rule (fixed before
+    any per-class-isolated result was inspected) -- a real, already-computed
+    configuration, not a hypothetical.
+
+    Unlike EXP-0001 (a negative-control hypothesis where a hard evaluation
+    FAILED verdict confirms it), EXP-0007's hypothesis is a direct positive
+    claim ("isolating the threshold to Person recovers recall without
+    violating the guardrail"), so the evaluation-policy verdict maps
+    directly: PASSED->PASS, FAILED->FAIL, INCONCLUSIVE->INCONCLUSIVE.
+    """
+    sweep_path = _per_class_threshold_sweep_path()
+    if not sweep_path.exists():
+        raise RunnerError(f"missing evidence file: {sweep_path}")
+    sweep = json.loads(sweep_path.read_text(encoding="utf-8"))
+
+    try:
+        baseline_bucket = sweep["person_thresholds"]["0.4"]
+        representative = sweep["representative_person_threshold"]
+        candidate_bucket = sweep["person_thresholds"][str(representative)]
+    except KeyError as e:
+        raise RunnerError(f"per_class_threshold_sweep.json missing expected bucket: {e}") from e
+
+    baseline_hazard = baseline_bucket["hazard_overall"]
+    candidate_hazard = candidate_bucket["hazard_overall"]
+    baseline_person = baseline_bucket["person"]
+    candidate_person = candidate_bucket["person"]
+
+    baseline_run_meta = json.loads(
+        (REPO_ROOT / "benchmark" / "results" / "baseline" / "metrics.json").read_text(encoding="utf-8")
+    )
+    p95 = baseline_run_meta["latency_ms"]["p95"]
+
+    baseline_metrics = {
+        "hazard": {"precision": baseline_hazard["precision"], "recall": baseline_hazard["recall"]},
+        "person": {
+            "recall": baseline_person["recall"], "precision": baseline_person["precision"],
+            "num_gt": baseline_person["num_gt"],
+        },
+        "latency": {"p95_ms": p95},
+    }
+    candidate_metrics = {
+        "hazard": {"precision": candidate_hazard["precision"], "recall": candidate_hazard["recall"]},
+        "person": {
+            "recall": candidate_person["recall"], "precision": candidate_person["precision"],
+            "num_gt": candidate_person["num_gt"],
+        },
+        "latency": {"p95_ms": p95},
+    }
+
+    policy = default_hazard_policy(baseline_hazard["precision"], baseline_hazard["recall"])
+
+    notes = (
+        "Per-class (Person-only) threshold policy, isolating EXP-0001's global threshold "
+        f"variable to one class. Evidence source: {sweep_path.relative_to(REPO_ROOT)}. "
+        f"Representative candidate selected by the pre-registered rule: person_threshold="
+        f"{representative} (other hazard classes fixed at conf=0.4). No new inference was run; "
+        "no benchmark/config.py values were changed."
+    )
+
+    return ExperimentRunResult(
+        baseline_metrics=baseline_metrics,
+        candidate_metrics=candidate_metrics,
+        policy=policy,
+        verdict_interpretation={"PASSED": "PASS", "FAILED": "FAIL", "INCONCLUSIVE": "INCONCLUSIVE"},
+        notes=notes,
+        result_run_id=f"RUN-20260904-002+per_class_threshold_sweep@person={representative}",
+        log_lines=[
+            f"Loaded {sweep_path}",
+            f"pre-registered selection rule: {sweep['pre_registered_selection_rule']}",
+            f"representative person_threshold={representative}",
+            f"baseline (person=0.4) hazard: {baseline_hazard}",
+            f"candidate (person={representative}) hazard: {candidate_hazard}",
+            f"baseline (person=0.4) person: {baseline_person}",
+            f"candidate (person={representative}) person: {candidate_person}",
+        ],
+    )
+
+
 RUNNERS = {
     "EXP-0001": run_exp_0001,
     "EXP-0002": run_exp_0002,
     "EXP-0003": run_exp_0003,
     "EXP-0004": run_exp_0004,
     "EXP-0005": run_exp_0005,
+    "EXP-0007": run_exp_0007,
 }

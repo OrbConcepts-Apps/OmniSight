@@ -1,0 +1,89 @@
+{
+  "person_thresholds": {
+    "0.4": {
+      "hazard_overall": {
+        "precision": 0.8070175438596491,
+        "recall": 0.4804177545691906,
+        "f1": 0.602291325695581,
+        "tp": 368,
+        "fp": 88,
+        "fn": 398,
+        "num_gt": 766,
+        "num_predictions": 456
+      },
+      "person": {
+        "precision": 0.6666666666666666,
+        "recall": 0.21122112211221122,
+        "tp": 64,
+        "fp": 32,
+        "fn": 239,
+        "num_gt": 303
+      }
+    },
+    "0.3": {
+      "hazard_overall": {
+        "precision": 0.766798418972332,
+        "recall": 0.5065274151436031,
+        "f1": 0.610062893081761,
+        "tp": 388,
+        "fp": 118,
+        "fn": 378,
+        "num_gt": 766,
+        "num_predictions": 506
+      },
+      "person": {
+        "precision": 0.5753424657534246,
+        "recall": 0.27722772277227725,
+        "tp": 84,
+        "fp": 62,
+        "fn": 219,
+        "num_gt": 303
+      }
+    },
+    "0.2": {
+      "hazard_overall": {
+        "precision": 0.7170474516695958,
+        "recall": 0.5326370757180157,
+        "f1": 0.6112359550561798,
+        "tp": 408,
+        "fp": 161,
+        "fn": 358,
+        "num_gt": 766,
+        "num_predictions": 569
+      },
+      "person": {
+        "precision": 0.49760765550239233,
+        "recall": 0.3432343234323432,
+        "tp": 104,
+        "fp": 105,
+        "fn": 199,
+        "num_gt": 303
+      }
+    },
+    "0.1": {
+      "hazard_overall": {
+        "precision": 0.6409495548961425,
+        "recall": 0.5639686684073107,
+        "f1": 0.6000000000000001,
+        "tp": 432,
+        "fp": 242,
+        "fn": 334,
+        "num_gt": 766,
+        "num_predictions": 674
+      },
+      "person": {
+        "precision": 0.40764331210191085,
+        "recall": 0.42244224422442245,
+        "tp": 128,
+        "fp": 186,
+        "fn": 175,
+        "num_gt": 303
+      }
+    }
+  },
+  "pre_registered_selection_rule": "Among PERSON_THRESHOLDS whose hazard.precision >= baseline_hazard_precision - 0.05, pick the one with highest person.recall; if none qualify, representative=0.40 (no viable candidate).",
+  "baseline_hazard_precision": 0.8070175438596491,
+  "guardrail_floor": 0.757017543859649,
+  "representative_person_threshold": 0.3,
+  "other_hazard_class_threshold": 0.4
+}
