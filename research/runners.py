@@ -1405,6 +1405,80 @@ def run_exp_0010(exp: Experiment, exp_dir: Path) -> ExperimentRunResult:
     )
 
 
+def _nms_iou_sweep_path() -> Path:
+    return REPO_ROOT / "benchmark" / "results" / "diagnostics" / "nms_iou_sweep.json"
+
+
+def run_exp_0011(exp: Experiment, exp_dir: Path) -> ExperimentRunResult:
+    """EXP-0011: inference/NMS IoU sensitivity sweep. Reads the results of
+    benchmark/diagnostics/nms_iou_sweep.py (real, non-training inference,
+    run separately -- this runner does NOT itself invoke the model, mirroring
+    the read-only-runner convention every threshold-family experiment in
+    this lab uses: the expensive step runs once, standalone, and this runner
+    judges its already-produced output). Candidate = the grid point with the
+    highest person.recall among those satisfying the guardrail (excluding
+    the iou=0.7 control itself), mirroring EXP-0007's pre-registered
+    selection rule; if none qualify, candidate=control (no viable finding)."""
+    sweep_path = _nms_iou_sweep_path()
+    if not sweep_path.exists():
+        raise RunnerError(f"missing evidence file: {sweep_path}")
+    sweep = json.loads(sweep_path.read_text(encoding="utf-8"))
+
+    control_iou = sweep["procedure"]["control_iou"]
+    grid = sweep["grid"]
+    summary = sweep["summary"]
+
+    qualifying = [iou for iou, s in summary.items() if s["point_estimate_pass"]]
+    representative = max(qualifying, key=lambda iou: grid[iou]["person"]["recall"]) if qualifying else str(control_iou)
+
+    control = grid[str(control_iou)]
+    candidate = grid[representative]
+
+    baseline_metrics = {
+        "hazard": {"precision": control["hazard"]["precision"], "recall": control["hazard"]["recall"]},
+        "person": {"recall": control["person"]["recall"], "precision": control["person"]["precision"], "num_gt": control["person"]["num_gt"]},
+        "latency": {"p95_ms": control["latency_ms"]["p95"]},
+    }
+    candidate_metrics = {
+        "hazard": {"precision": candidate["hazard"]["precision"], "recall": candidate["hazard"]["recall"]},
+        "person": {"recall": candidate["person"]["recall"], "precision": candidate["person"]["precision"], "num_gt": candidate["person"]["num_gt"]},
+        "latency": {"p95_ms": candidate["latency_ms"]["p95"]},
+    }
+
+    policy = default_hazard_policy(control["hazard"]["precision"], control["hazard"]["recall"])
+
+    tdm = candidate["true_detector_miss_recovery"]
+    notes = (
+        f"NMS/inference IoU sensitivity sweep, real non-training inference over the 380-image "
+        f"eval set. Grid={sweep['procedure']['nms_iou_grid']}, confidence fixed at "
+        f"{sweep['procedure']['confidence_threshold_fixed_at']}. Representative candidate: "
+        f"iou={representative} (pre-registered rule: highest person.recall among grid points "
+        f"clearing the guardrail, excluding the iou={control_iou} control). "
+        f"TRUE_DETECTOR_MISS recovery at this candidate: {tdm['recovered_strict_iou_ge_0.5']}/"
+        f"{tdm['denominator']} strict (IoU>=0.5), {tdm['spatially_associated_iou_ge_0.3']}/"
+        f"{tdm['denominator']} spatially-associated (IoU>=0.3). duplicate_person_pairs="
+        f"{candidate['duplicate_person_pairs']} (control: {control['duplicate_person_pairs']}). "
+        f"Evidence source: {sweep_path.relative_to(REPO_ROOT)}. Confidence threshold fixed at "
+        "the production value throughout -- not jointly optimized with the now-closed "
+        "EXP-0007-0010 Person-threshold branch."
+    )
+
+    return ExperimentRunResult(
+        baseline_metrics=baseline_metrics,
+        candidate_metrics=candidate_metrics,
+        policy=policy,
+        verdict_interpretation={"PASSED": "PASS", "FAILED": "FAIL", "INCONCLUSIVE": "INCONCLUSIVE"},
+        notes=notes,
+        result_run_id=f"RUN-20260904-002+nms_iou_sweep@iou={representative}",
+        log_lines=[
+            f"Loaded {sweep_path}",
+            f"grid summary: {summary}",
+            f"representative iou={representative}",
+            f"TRUE_DETECTOR_MISS recovery: {tdm}",
+        ],
+    )
+
+
 RUNNERS = {
     "EXP-0001": run_exp_0001,
     "EXP-0002": run_exp_0002,
@@ -1413,6 +1487,7 @@ RUNNERS = {
     "EXP-0005": run_exp_0005,
     "EXP-0009": run_exp_0009,
     "EXP-0010": run_exp_0010,
+    "EXP-0011": run_exp_0011,
     "EXP-0007": run_exp_0007,
     # EXP-0008: identical design to EXP-0007 (a clean re-run after EXP-0007's
     # own branch run was REJECTED for a structural reason -- stale pytest
