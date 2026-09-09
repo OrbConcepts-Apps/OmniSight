@@ -1205,4 +1205,11 @@ RUNNERS = {
     "EXP-0004": run_exp_0004,
     "EXP-0005": run_exp_0005,
     "EXP-0007": run_exp_0007,
+    # EXP-0008: identical design to EXP-0007 (a clean re-run after EXP-0007's
+    # own branch run was REJECTED for a structural reason -- stale pytest
+    # invariants, not a scientific one; see research/_exp0008_preregister.py).
+    # run_exp_0007 references no experiment_id internally (reads the same
+    # evidence file, keyed only by exp_dir the caller passes), so reusing it
+    # directly is correct, not a copy-paste hazard.
+    "EXP-0008": run_exp_0007,
 }
