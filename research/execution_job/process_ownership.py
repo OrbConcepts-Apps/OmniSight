@@ -81,15 +81,47 @@ def live_snapshot_for_pid(pid: int) -> "LiveProcessSnapshot":
     command_fingerprint = None
     cwd = None
     executable = ""
-    try:
-        start_timestamp = f"{proc.create_time():.6f}"
-    except (psutil.NoSuchProcess, psutil.AccessDenied):
-        pass
-    try:
-        argv = proc.cmdline()
-        command_fingerprint = command_fingerprint_of(argv) if argv else None
-    except (psutil.NoSuchProcess, psutil.AccessDenied):
-        pass
+
+    # KNOWN RACE (discovered empirically, not assumed), two directions:
+    #   1. STARTUP: psutil's Process.create_time()/cmdline() can transiently
+    #      raise AccessDenied or return empty data immediately after
+    #      CreateProcess on Windows, before the OS has fully populated the
+    #      new process's block.
+    #   2. SHUTDOWN: while a process is mid-termination (e.g. this exact
+    #      pid was just sent CTRL_BREAK_EVENT by graceful_stop()),
+    #      create_time() may keep working (static metadata) while
+    #      cmdline() -- which needs to read the still-live process's
+    #      memory -- starts failing, and the process then finishes exiting
+    #      moments later. Retrying blindly cannot fix case 2 (the process
+    #      is not coming back) -- so this loop re-checks liveness on every
+    #      attempt: a NoSuchProcess encountered THIS SIDE of the initial
+    #      is_running() check means the process has since (cleanly, not
+    #      ambiguously) exited, and the function correctly reports
+    #      exists=False rather than a spurious "ambiguous" state.
+    import time as _time
+
+    _max_attempts = 15
+    for attempt in range(_max_attempts):
+        if start_timestamp is None:
+            try:
+                start_timestamp = f"{proc.create_time():.6f}"
+            except psutil.NoSuchProcess:
+                return LiveProcessSnapshot(pid=pid, start_timestamp=None, command_fingerprint=None, cwd=None, exists=False)
+            except psutil.AccessDenied:
+                pass  # can be transient right after CreateProcess -- retry
+        if command_fingerprint is None:
+            try:
+                argv = proc.cmdline()
+            except psutil.NoSuchProcess:
+                return LiveProcessSnapshot(pid=pid, start_timestamp=None, command_fingerprint=None, cwd=None, exists=False)
+            except psutil.AccessDenied:
+                argv = None
+            if argv:
+                command_fingerprint = command_fingerprint_of(argv)
+        if start_timestamp is not None and command_fingerprint is not None:
+            break
+        if attempt < _max_attempts - 1:
+            _time.sleep(0.03)
     # KNOWN WINDOWS LIMITATION (verified empirically, not assumed): psutil's
     # Process.cwd() on Windows does not reliably report the actual
     # directory passed to CreateProcess -- it has been observed to report

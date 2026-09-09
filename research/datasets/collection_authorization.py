@@ -136,6 +136,27 @@ def check_collection_admission_live(
     )
 
 
+def check_field_clearance(
+    admission_result: CollectionAdmissionResult, ethics_status: str,
+) -> CollectionAdmissionResult:
+    """Combines the SOFTWARE collection-admission gate with the SEPARATE
+    ethics/institutional-review determination (research.datasets.ethics_review)
+    -- both must clear before real participant recording is permitted.
+    Passing an already-admitted software result does NOT itself grant
+    field clearance if the ethics status hasn't been recorded as cleared."""
+    from research.datasets.ethics_review import is_field_clearance_granted
+
+    blockers = list(admission_result.blockers)
+    if not is_field_clearance_granted(ethics_status):
+        blockers.append(
+            f"ethics_or_institutional_review_status={ethics_status!r} is not a cleared "
+            "status -- real participant recording remains blocked until a human operator "
+            "records an applicable determination (NOT_REQUIRED_BY_INSTITUTION or "
+            "APPROVED_OR_EXEMPT), never self-set by this codebase"
+        )
+    return CollectionAdmissionResult(admitted=len(blockers) == 0, blockers=tuple(blockers))
+
+
 def is_pilot_media_collectible(consent_status: str, privacy_class: str) -> bool:
     """Minimal consent/provenance boundary (Phase authorization section
     11): a media record can never be treated as collectible under this

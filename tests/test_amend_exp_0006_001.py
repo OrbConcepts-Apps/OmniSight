@@ -43,8 +43,12 @@ class TestAmendmentApplied:
             assert required_phrase in text, f"missing required amendment element: {required_phrase!r}"
 
     def test_amendment_history_integrity(self):
+        """Amendment 001 (this file's subject) is the FIRST of what is now
+        2 amendments on EXP-0006 (Amendment 002, staged_pilot_collection_approved,
+        was applied in a later authorized task) -- history is append-only,
+        Amendment 001's own record is untouched by the later amendment."""
         spec = load_spec("EXP-0006")
-        assert len(spec.amendments) == 1
+        assert len(spec.amendments) >= 1
         a = spec.amendments[0]
         assert a.field_name == "isolation_requirements"
         assert a.old_value == OLD_QA_SENTENCE or OLD_QA_SENTENCE in str(a.old_value)

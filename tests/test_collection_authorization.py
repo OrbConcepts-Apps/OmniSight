@@ -9,8 +9,10 @@ from research.datasets.collection_authorization import (
     CollectionRequest,
     check_collection_admission,
     check_collection_admission_live,
+    check_field_clearance,
     is_pilot_media_collectible,
 )
+from research.datasets.ethics_review import APPROVED_OR_EXEMPT, BLOCKED_PENDING_REVIEW, NOT_ASSESSED
 from research.datasets.pilot_plan import OMNISIGHT_PILOT_001_PLAN_HASH, PILOT_ID
 from research.db import OmniLabDB
 
@@ -26,9 +28,31 @@ def _valid_request(**overrides):
 
 
 class TestApprovalDefaultsAndBlocking:
-    def test_collection_approval_defaults_false_on_real_frozen_spec(self):
+    def test_field_defaults_false_on_dataclass(self):
+        """The dataclass field itself still defaults to False for any
+        freshly-built proposal -- this is a property of the SCHEMA, not of
+        EXP-0006's own (now-amended) real state."""
+        from research.experiment_spec import ExperimentProposal
+
+        default_value = ExperimentProposal.__dataclass_fields__["staged_pilot_collection_approved"].default
+        assert default_value is False
+
+    def test_collection_approval_now_true_on_real_amended_spec(self):
+        """EXP-0006 Amendment 002 (human-authorized, this turn) granted
+        staged_pilot_collection_approved=True, scoped to OMNISIGHT-PILOT-001."""
         spec = load_spec("EXP-0006")
-        assert spec.proposal.staged_pilot_collection_approved is False
+        assert spec.proposal.staged_pilot_collection_approved is True
+
+    def test_only_this_flag_changed_by_amendment_002(self):
+        spec = load_spec("EXP-0006")
+        p = spec.proposal
+        assert p.new_training_approved is False
+        assert p.private_user_data_use_approved is False
+        assert p.mac_iphone_deployment_approved is False
+        assert p.external_upload_approved is False
+        assert p.production_swift_modification_approved is False
+        assert p.coreml_model_replacement_approved is False
+        assert p.signing_distribution_change_approved is False
 
     def test_denied_while_approval_false(self):
         result = check_collection_admission(
@@ -235,16 +259,50 @@ class TestConsentProvenanceBoundary:
         assert params == ["consent_status", "privacy_class"]
 
 
+class TestFieldClearance:
+    def test_admitted_software_gate_but_not_assessed_ethics_still_blocked(self):
+        admission = check_collection_admission(
+            _valid_request(), operational_state_running=True, staged_pilot_collection_approved=True,
+        )
+        assert admission.admitted is True  # software gate alone
+        clearance = check_field_clearance(admission, NOT_ASSESSED)
+        assert clearance.admitted is False
+        assert any("ethics" in b.lower() for b in clearance.blockers)
+
+    def test_admitted_software_gate_and_blocked_pending_review_still_blocked(self):
+        admission = check_collection_admission(
+            _valid_request(), operational_state_running=True, staged_pilot_collection_approved=True,
+        )
+        clearance = check_field_clearance(admission, BLOCKED_PENDING_REVIEW)
+        assert clearance.admitted is False
+
+    def test_admitted_software_gate_and_approved_ethics_clears(self):
+        admission = check_collection_admission(
+            _valid_request(), operational_state_running=True, staged_pilot_collection_approved=True,
+        )
+        clearance = check_field_clearance(admission, APPROVED_OR_EXEMPT)
+        assert clearance.admitted is True
+
+    def test_software_gate_denied_stays_denied_regardless_of_ethics(self):
+        admission = check_collection_admission(
+            _valid_request(), operational_state_running=True, staged_pilot_collection_approved=False,
+        )
+        clearance = check_field_clearance(admission, APPROVED_OR_EXEMPT)
+        assert clearance.admitted is False
+
+
 class TestPersistedStateUnaffected:
     def test_exp_0006_remains_blocked(self):
         with OmniLabDB() as db:
             exp = db.get_experiment("EXP-0006")
         assert exp.execution_status == "BLOCKED"
 
-    def test_all_approvals_false_in_real_persisted_state(self):
+    def test_only_collection_approved_rest_still_false(self):
+        """After human-authorized Amendment 002: staged_pilot_collection_approved
+        is True, every other human-authority flag remains False."""
         spec = load_spec("EXP-0006")
         p = spec.proposal
+        assert p.staged_pilot_collection_approved is True
         assert p.new_training_approved is False
         assert p.private_user_data_use_approved is False
         assert p.mac_iphone_deployment_approved is False
-        assert p.staged_pilot_collection_approved is False
