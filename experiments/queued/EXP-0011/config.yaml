@@ -1,0 +1,17 @@
+experiment_id: EXP-0011
+experiment_family: threshold_postprocessing
+independent_variable: nms_inference_iou (benchmark/model.py::predict_at()'s `iou`
+  parameter, passed to ultralytics model.predict()) -- grid [0.9,0.8,0.7,0.6,0.5],
+  0.7=production control, fixed BEFORE any grid-point result was computed. Confidence
+  threshold fixed at 0.4 (production) throughout -- NOT jointly optimized with the
+  now-closed EXP-0007-0010 Person-threshold branch.
+controls:
+  model: yolov8m-oiv7.pt (same weights as the canonical baseline)
+  manifest: data/manifests/eval_manifest.jsonl (unchanged)
+  imgsz: 640
+  confidence_threshold: 0.4
+  evaluation_matching_iou: 0.5
+configuration: {}
+baseline_run_id: RUN-20260904-002
+validation_requirement: OFFLINE_SIMULATABLE
+estimated_cost: 0.0
