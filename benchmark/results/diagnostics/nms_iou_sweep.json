@@ -1,0 +1,187 @@
+{
+  "procedure": {
+    "nms_iou_grid": [
+      0.9,
+      0.8,
+      0.7,
+      0.6,
+      0.5
+    ],
+    "control_iou": 0.7,
+    "confidence_threshold_fixed_at": 0.4,
+    "guardrail_floor": 0.757,
+    "min_meaningful_delta": 0.03,
+    "match_iou": 0.5,
+    "spatial_assoc_iou": 0.3
+  },
+  "grid": {
+    "0.9": {
+      "hazard": {
+        "precision": 0.7747368421052632,
+        "recall": 0.4804177545691906,
+        "tp": 368,
+        "fp": 107,
+        "fn": 398
+      },
+      "person": {
+        "recall": 0.21122112211221122,
+        "precision": 0.6597938144329897,
+        "tp": 64,
+        "fp": 33,
+        "fn": 239,
+        "num_gt": 303
+      },
+      "duplicate_person_pairs": 1,
+      "latency_ms": {
+        "p50": 22.601200000281096,
+        "p95": 62.30390000018815
+      },
+      "true_detector_miss_recovery": {
+        "denominator": 92,
+        "recovered_strict_iou_ge_0.5": 1,
+        "spatially_associated_iou_ge_0.3": 1
+      }
+    },
+    "0.8": {
+      "hazard": {
+        "precision": 0.7982646420824295,
+        "recall": 0.4804177545691906,
+        "tp": 368,
+        "fp": 93,
+        "fn": 398
+      },
+      "person": {
+        "recall": 0.21122112211221122,
+        "precision": 0.6666666666666666,
+        "tp": 64,
+        "fp": 32,
+        "fn": 239,
+        "num_gt": 303
+      },
+      "duplicate_person_pairs": 0,
+      "latency_ms": {
+        "p50": 17.994800000451505,
+        "p95": 22.122899999885703
+      },
+      "true_detector_miss_recovery": {
+        "denominator": 92,
+        "recovered_strict_iou_ge_0.5": 1,
+        "spatially_associated_iou_ge_0.3": 1
+      }
+    },
+    "0.7": {
+      "hazard": {
+        "precision": 0.8070175438596491,
+        "recall": 0.4804177545691906,
+        "tp": 368,
+        "fp": 88,
+        "fn": 398
+      },
+      "person": {
+        "recall": 0.21122112211221122,
+        "precision": 0.6666666666666666,
+        "tp": 64,
+        "fp": 32,
+        "fn": 239,
+        "num_gt": 303
+      },
+      "duplicate_person_pairs": 0,
+      "latency_ms": {
+        "p50": 18.069499999910477,
+        "p95": 21.89389999875857
+      },
+      "true_detector_miss_recovery": {
+        "denominator": 92,
+        "recovered_strict_iou_ge_0.5": 1,
+        "spatially_associated_iou_ge_0.3": 1
+      }
+    },
+    "0.6": {
+      "hazard": {
+        "precision": 0.8105726872246696,
+        "recall": 0.4804177545691906,
+        "tp": 368,
+        "fp": 86,
+        "fn": 398
+      },
+      "person": {
+        "recall": 0.21122112211221122,
+        "precision": 0.6666666666666666,
+        "tp": 64,
+        "fp": 32,
+        "fn": 239,
+        "num_gt": 303
+      },
+      "duplicate_person_pairs": 0,
+      "latency_ms": {
+        "p50": 18.737899999905494,
+        "p95": 24.650499999552267
+      },
+      "true_detector_miss_recovery": {
+        "denominator": 92,
+        "recovered_strict_iou_ge_0.5": 1,
+        "spatially_associated_iou_ge_0.3": 1
+      }
+    },
+    "0.5": {
+      "hazard": {
+        "precision": 0.8123620309050773,
+        "recall": 0.4804177545691906,
+        "tp": 368,
+        "fp": 85,
+        "fn": 398
+      },
+      "person": {
+        "recall": 0.21122112211221122,
+        "precision": 0.6666666666666666,
+        "tp": 64,
+        "fp": 32,
+        "fn": 239,
+        "num_gt": 303
+      },
+      "duplicate_person_pairs": 0,
+      "latency_ms": {
+        "p50": 19.954599998527556,
+        "p95": 28.609700000743032
+      },
+      "true_detector_miss_recovery": {
+        "denominator": 92,
+        "recovered_strict_iou_ge_0.5": 1,
+        "spatially_associated_iou_ge_0.3": 1
+      }
+    }
+  },
+  "summary": {
+    "0.9": {
+      "person_recall_delta": 0.0,
+      "guardrail_satisfied": true,
+      "meaningful_delta": false,
+      "point_estimate_pass": false
+    },
+    "0.8": {
+      "person_recall_delta": 0.0,
+      "guardrail_satisfied": true,
+      "meaningful_delta": false,
+      "point_estimate_pass": false
+    },
+    "0.7": {
+      "person_recall_delta": 0.0,
+      "guardrail_satisfied": true,
+      "meaningful_delta": false,
+      "point_estimate_pass": false
+    },
+    "0.6": {
+      "person_recall_delta": 0.0,
+      "guardrail_satisfied": true,
+      "meaningful_delta": false,
+      "point_estimate_pass": false
+    },
+    "0.5": {
+      "person_recall_delta": 0.0,
+      "guardrail_satisfied": true,
+      "meaningful_delta": false,
+      "point_estimate_pass": false
+    }
+  },
+  "any_point_estimate_pass": false
+}
