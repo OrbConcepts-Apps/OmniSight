@@ -46,3 +46,11 @@ which guardrail) that the same mistake isn't repeated.
 - Research verdict: FAIL
 - Hypothesis: EXP-0008's PASS (person_threshold=0.30 recovers person.recall +0.066 while hazard -aggregate precision clears the 0.757 guardrail by +0.0098) is ROBUST under image-level bootstrap resampling of the same frozen 380-image eval set: the guardrail is held in at least 95% of resamples, and the recall-improvement direction is robust at the 95% level (2.5th percentile of the resampled recall delta is > 0).
 - Reasons: FRAGILE: bootstrap guardrail_violation_rate=0.369 exceeds the pre-registered tolerance (0.05) -- the hazard-precision guardrail is not reliably held under image-level resampling.
+
+## EXP-0010 (2026-09-09T23:29:02.583776+00:00)
+
+- Family: threshold_postprocessing
+- Execution status: COMPLETED
+- Research verdict: FAIL
+- Hypothesis: At least one person_threshold in the finer grid [0.40,0.38,0.36,0.34,0.32,0.30] is simultaneously (a) ROBUST under image-level bootstrap resampling -- guardrail_violation_rate<=0.05, per EXP-0009's criterion -- AND (b) achieves a mean recall delta vs the production baseline (0.40) of at least the lab's established minimum meaningful delta (0.03, used by every experiment since EXP-0001).
+- Reasons: threshold(s) ['0.38'] are ROBUST on the guardrail, but their mean recall delta falls short of the established minimum meaningful delta (0.03) -- robustness and meaningfulness are in tension across the tested grid; no threshold clears both.

@@ -1,0 +1,7 @@
+[2026-09-09T23:28:33.617594+00:00] branch experiment/EXP-0010 created from ec9ad7e677363b786c598dc1ddd0047099b177db
+Loaded C:\Users\Armaa\Downloads\OmniSight\benchmark\results\diagnostics\person_threshold_sensitivity_bootstrap.json
+grid classifications: {'0.4': 'INCONCLUSIVE', '0.38': 'ROBUST', '0.36': 'FRAGILE', '0.34': 'FRAGILE', '0.32': 'FRAGILE', '0.3': 'FRAGILE'}
+safest_robust_threshold=0.38
+[2026-09-09T23:29:02.417336+00:00] pytest exit_ok=True
+[2026-09-09T23:29:02.480939+00:00] evaluation_policy verdict=FAILED -> research_verdict=FAIL
+[2026-09-09T23:29:02.480939+00:00] verdict explanation: FAILED: threshold(s) ['0.38'] are ROBUST on the guardrail, but their mean recall delta falls short of the established minimum meaningful delta (0.03) -- robustness and meaningfulness are in tension across the tested grid; no threshold clears both.
