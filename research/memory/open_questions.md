@@ -49,6 +49,28 @@ WebSearch, never training-data recall alone) — this is not started.
   `private_user_data_use_approved` are separate approvals, both currently
   False, required before any real training run.
 
+## Reproducibility gap (audit finding, not yet remediated)
+
+- EXP-0002 through EXP-0005 stored only aggregate point-estimate metrics
+  (`db.get_experiment(...).metrics`), not raw per-image predictions —
+  confirmed by inspecting the DB and `benchmark/results/`: only the
+  baseline run (`benchmark/results/baseline/predictions.jsonl`, 380 images)
+  preserved per-image output. This means no post-hoc bootstrap CI or
+  effect-size interval can be computed for EXP-0002-0005's candidate arms;
+  their verdicts rest on single point estimates against preregistered
+  guardrails, which is what the guardrail mechanism was designed for, but it
+  is a real limitation for paper-grade uncertainty reporting (§17 of the
+  autonomous research goal). EXP-0006's current `expected_artifacts` list
+  (weights + `seed_results.json` + `aggregate_verdict.json` per seed/arm)
+  does not yet include raw per-image prediction files either — flagged here
+  rather than silently amended into the frozen preregistration, since it is
+  a discretionary reproducibility improvement, not a correctness requirement
+  for EXP-0006's own preregistered criteria. If a future amendment is
+  wanted, the fix is: emit per-seed/per-arm raw predictions (mirroring
+  `predictions.jsonl`'s existing format) as an additional preregistered
+  artifact, enabling bootstrap CIs over the sequence/session-independent
+  unit at analysis time.
+
 ## EXP-0004 (2026-09-05T00:48:38.175398+00:00)
 
 - Family: preprocessing
