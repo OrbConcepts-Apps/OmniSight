@@ -36,15 +36,31 @@ WebSearch, never training-data recall alone) — this is not started.
   Images V7 is explicitly documented as not representative of real
   accessibility-usage conditions.
 
-## EXP-0008 — per-class Person threshold: is the guardrail margin robust?
+## RESOLVED — EXP-0008's guardrail margin was NOT robust (EXP-0009/EXP-0010)
 
-- EXP-0008 PASSED with a thin hazard-precision guardrail margin (+0.0098
-  over the 0.757 floor, see `reports/baseline/person_per_class_threshold_analysis.md`).
-  Genuinely unresolved: does this margin survive a bootstrap CI over the
-  380-image manifest, or a second/held-out eval set? Not yet checked --
-  this is exactly the kind of question the reproducibility-gap note above
-  (raw per-image predictions) would let a future pass answer rigorously
-  instead of on a single point estimate.
+- Was: "does EXP-0008's +0.0098 guardrail margin survive a bootstrap CI?"
+  Answered: NO. EXP-0009 (2000-replicate image-level bootstrap) found a
+  36.9% guardrail-violation rate at person_threshold=0.30. EXP-0010 (finer
+  sensitivity grid, same methodology) found no threshold between 0.30 and
+  0.40 that is both robust on the guardrail and clears the lab's own +0.03
+  minimum-meaningful-delta bar (0.38 is robust but only +0.0199 mean
+  recall gain). See `reports/baseline/person_per_class_threshold_analysis.md`
+  for the full chain. The per-class Person threshold-policy line of inquiry
+  is closed as a genuine negative result.
+
+## Un-pursued candidate: NMS/inference IoU sensitivity (identified, not yet run)
+
+- `run_metadata.json`'s `iou_threshold=0.7` is a distinct, untested
+  independent variable from both the confidence-threshold work above and
+  the eval-matching IoU (0.5, used by benchmark/metrics.py's greedy
+  matcher) -- it governs the model's own internal duplicate-box suppression
+  at inference time, not post-hoc filtering. Unlike the threshold-policy
+  experiments, this CANNOT be answered by re-filtering the existing
+  low_conf_predictions.jsonl capture -- it requires new (non-training)
+  inference re-runs at different NMS-IoU settings, similar in cost/shape to
+  EXP-0002's resolution sweep. Identified as a plausible next orthogonal,
+  non-training, non-private-data candidate; not pursued this session for
+  scope reasons, not because it was ruled out.
 
 ## EXP-0006 — domain-matched training data (registered, not yet executable)
 

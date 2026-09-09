@@ -50,15 +50,31 @@ ethics determination).
   over from the EXP-0006 era hardcoded "no experiment beyond EXP-0006
   exists"), not a scientific rejection. Preserved honestly, not deleted.
 - EXP-0008 (identical design, parent_experiment_id=EXP-0007, run after the
-  stale invariants were corrected) — COMPLETED / PASS. Isolating the
-  confidence threshold to Person only (0.30, other hazard classes fixed at
-  0.4) recovers person.recall 0.211->0.277 (+0.0660) while hazard-aggregate
-  precision holds at 0.767, clearing the 0.757 guardrail by a THIN margin
-  (+0.0098) — see `reports/baseline/person_per_class_threshold_analysis.md`
-  for the full result table and caveats (person.precision cost, sampling-
-  noise risk on the thin margin, not a production change by itself). Zero
-  new inference, zero training — reuses EXP-0001's existing conf=0.01
-  capture. Orthogonal to and unaffected by the blocked EXP-0006 pilot.
+  stale invariants were corrected) — COMPLETED / PASS (deterministic, single
+  point estimate, unchanged/unretracted). Isolating the confidence threshold
+  to Person only (0.30, other hazard classes fixed at 0.4) recovers
+  person.recall 0.211->0.277 (+0.0660) while hazard-aggregate precision
+  holds at 0.767, clearing the 0.757 guardrail by a THIN margin (+0.0098).
+- EXP-0009 (post-hoc image-level bootstrap robustness check of EXP-0008,
+  parent_experiment_id=EXP-0008, 2000 replicates, seed=20260909) —
+  COMPLETED / FAIL (FRAGILE): hazard-aggregate precision at
+  person_threshold=0.30 falls below the 0.757 guardrail in 36.9% of
+  image-level bootstrap resamples. The recall improvement itself IS robust
+  (95% CI [0.0365, 0.1026]) — only the precision-guardrail margin is fragile.
+- EXP-0010 (threshold-sensitivity bootstrap, parent_experiment_id=EXP-0009,
+  finer grid [0.40,0.38,0.36,0.34,0.32,0.30], same seed) — COMPLETED / FAIL:
+  no threshold is BOTH robust on the guardrail AND clears the lab's
+  established +0.03 minimum-meaningful-delta bar. person_threshold=0.38 is
+  the only robust point (violation_rate=0.042) but its mean recall gain is
+  only +0.0199. **This closes the per-class Person confidence-threshold line
+  of inquiry (EXP-0007/8/9/10) as a genuine, defensible negative result** —
+  see `reports/baseline/person_per_class_threshold_analysis.md` (full
+  addendum) for the complete chain, explicitly distinguishing EXP-0008's
+  unretracted deterministic PASS from its (fragile) robustness from
+  (insufficient) evidence for any production recommendation. Zero new
+  inference, zero training, zero private data throughout EXP-0007-0010 —
+  all reuse EXP-0001's existing conf=0.01 capture. Orthogonal to and
+  unaffected by the blocked EXP-0006 pilot.
 
 ## Pilot data collection (OMNISIGHT-PILOT-001)
 

@@ -74,9 +74,47 @@ rather than smeared across the hazard aggregate the way EXP-0001's global drop w
 4. This finding says nothing about EXP-0006's domain-matched-training-data question -- it is
    a decision-threshold policy result, not a training-data or model-architecture result.
 
+## Addendum: robustness and sensitivity analysis (EXP-0009, EXP-0010)
+
+Caveat 1 above was checked. **The result is FRAGILE, not robust.**
+
+**EXP-0009** (image-level bootstrap, 2000 replicates, fixed seed=20260909, resampling the
+frozen 380-image manifest, recomputing metrics from scratch per replicate -- never
+bootstrapping already-aggregated point estimates): at person_threshold=0.30, hazard-aggregate
+precision falls below the 0.757 guardrail in **36.9% of resamples** (mean 0.766, 95% CI
+[0.704, 0.823] -- the guardrail floor sits well inside this interval). The Person-recall
+improvement itself IS robust (95% CI [0.0365, 0.1026], 99.4% of resamples clear +0.03) -- only
+the precision side of EXP-0008's result is fragile.
+
+**EXP-0010** (same bootstrap methodology, finer grid [0.40,0.38,0.36,0.34,0.32,0.30] in one
+pass per replicate): only **person_threshold=0.38** is robust on the guardrail
+(violation_rate=0.042), but its mean recall gain is only **+0.0199** -- below this lab's own
++0.03 minimum-meaningful-delta bar (used since EXP-0001). Every threshold with a
+point-estimate recall gain >=0.03 (0.34, 0.32, 0.30) is fragile (violation rates 0.202, 0.267,
+0.369 respectively, rising monotonically as the threshold drops). **No threshold in the tested
+grid is both robust and meaningful.**
+
+### Three things, kept explicitly distinct (per this analysis's own governing instructions)
+
+1. **Original EXP-0008 deterministic PASS**: unchanged, still on record exactly as computed --
+   person_threshold=0.30 clears the guardrail and the minimum-delta bar on the single frozen
+   380-image point estimate. This record is not retroactively altered.
+2. **Robustness of that PASS**: FRAGILE (EXP-0009), and the follow-up sensitivity sweep
+   (EXP-0010) confirms this isn't a threshold-tuning fix -- the entire testable region between
+   the fragile candidate and the production baseline fails to clear both bars at once.
+3. **Evidence sufficient for a production recommendation**: NO. This line of inquiry
+   (per-class Person confidence-threshold policy, EXP-0007/8/9/10) is closed under current
+   evidence as a genuine, defensible negative result -- not because EXP-0008's arithmetic was
+   wrong, but because its guardrail margin does not survive the sampling noise inherent in a
+   380-image eval set. No production change is recommended or should be inferred from EXP-0008
+   alone.
+
 ## Bottom line
 
-A real, deterministic, preregistered, orthogonal, positive finding -- distinct from and not
-contradicted by EXP-0001-0005 -- but with a thin guardrail margin that should be treated as
-"worth a closer look" rather than "ready to ship." No production, training, or approval
-action is taken or requested by this analysis.
+EXP-0008 was a real, deterministic, preregistered, orthogonal PASS -- but a post-hoc
+robustness check (explicitly labeled as such, since EXP-0008 preregistered no uncertainty
+criterion) shows that PASS does not survive image-level bootstrap resampling, and a
+sensitivity sweep confirms no nearby threshold does either. The honest final interpretation of
+this whole line of inquiry is a **negative result**: no per-class confidence-threshold policy
+in the tested range is both robust and meaningful given the current 380-image eval set. No
+production, training, or approval action is taken or requested by any part of this analysis.
