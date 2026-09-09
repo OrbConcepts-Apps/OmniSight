@@ -1,0 +1,11 @@
+[2026-09-09T23:01:39.677619+00:00] branch experiment/EXP-0008 created from 5695568736576a5f87a31ba8dddf861ccba67b2b
+Loaded C:\Users\Armaa\Downloads\OmniSight\benchmark\results\diagnostics\per_class_threshold_sweep.json
+pre-registered selection rule: Among PERSON_THRESHOLDS whose hazard.precision >= baseline_hazard_precision - 0.05, pick the one with highest person.recall; if none qualify, representative=0.40 (no viable candidate).
+representative person_threshold=0.3
+baseline (person=0.4) hazard: {'precision': 0.8070175438596491, 'recall': 0.4804177545691906, 'f1': 0.602291325695581, 'tp': 368, 'fp': 88, 'fn': 398, 'num_gt': 766, 'num_predictions': 456}
+candidate (person=0.3) hazard: {'precision': 0.766798418972332, 'recall': 0.5065274151436031, 'f1': 0.610062893081761, 'tp': 388, 'fp': 118, 'fn': 378, 'num_gt': 766, 'num_predictions': 506}
+baseline (person=0.4) person: {'precision': 0.6666666666666666, 'recall': 0.21122112211221122, 'tp': 64, 'fp': 32, 'fn': 239, 'num_gt': 303}
+candidate (person=0.3) person: {'precision': 0.5753424657534246, 'recall': 0.27722772277227725, 'tp': 84, 'fp': 62, 'fn': 219, 'num_gt': 303}
+[2026-09-09T23:02:11.868321+00:00] pytest exit_ok=True
+[2026-09-09T23:02:11.934271+00:00] evaluation_policy verdict=PASSED -> research_verdict=PASS
+[2026-09-09T23:02:11.934271+00:00] verdict explanation: PASSED: primary metric 'person.recall' improved by +0.0660 with all guardrails satisfied

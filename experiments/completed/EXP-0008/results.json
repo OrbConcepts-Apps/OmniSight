@@ -1,0 +1,64 @@
+{
+  "baseline_metrics": {
+    "hazard": {
+      "precision": 0.8070175438596491,
+      "recall": 0.4804177545691906
+    },
+    "person": {
+      "recall": 0.21122112211221122,
+      "precision": 0.6666666666666666,
+      "num_gt": 303
+    },
+    "latency": {
+      "p95_ms": 57.12579999999434
+    }
+  },
+  "candidate_metrics": {
+    "hazard": {
+      "precision": 0.766798418972332,
+      "recall": 0.5065274151436031
+    },
+    "person": {
+      "recall": 0.27722772277227725,
+      "precision": 0.5753424657534246,
+      "num_gt": 303
+    },
+    "latency": {
+      "p95_ms": 57.12579999999434
+    }
+  },
+  "raw_evaluation_policy_verdict": "PASSED",
+  "execution_status": "COMPLETED",
+  "research_verdict": "PASS",
+  "guardrail_results": [
+    {
+      "metric": "hazard.precision",
+      "value": 0.766798418972332,
+      "threshold": 0.757017543859649,
+      "comparator": "gte",
+      "satisfied": true,
+      "margin": 0.009780875112682996
+    },
+    {
+      "metric": "hazard.recall",
+      "value": 0.5065274151436031,
+      "threshold": 0.4604177545691906,
+      "comparator": "gte",
+      "satisfied": true,
+      "margin": 0.046109660574412514
+    },
+    {
+      "metric": "latency.p95_ms",
+      "value": 57.12579999999434,
+      "threshold": 85.68869999999151,
+      "comparator": "lte",
+      "satisfied": true,
+      "margin": 28.56289999999717
+    }
+  ],
+  "reasons": [
+    "primary metric 'person.recall' improved by +0.0660 with all guardrails satisfied"
+  ],
+  "notes": "Per-class (Person-only) threshold policy, isolating EXP-0001's global threshold variable to one class. Evidence source: benchmark\\results\\diagnostics\\per_class_threshold_sweep.json. Representative candidate selected by the pre-registered rule: person_threshold=0.3 (other hazard classes fixed at conf=0.4). No new inference was run; no benchmark/config.py values were changed.",
+  "result_run_id": "RUN-20260904-002+per_class_threshold_sweep@person=0.3"
+}
