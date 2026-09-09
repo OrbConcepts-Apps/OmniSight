@@ -26,13 +26,28 @@ WebSearch, never training-data recall alone) — this is not started.
   `research/experiment_registry.py`).
 - Whether YOLO26n (referenced in commit history, never actually shipped —
   see `OMNISIGHT_ARCHITECTURE.md` section 3) would improve Person/Stairs
-  recall — EXP-0005 is BLOCKED pending evidence from 0002-0004 that model
-  capacity/architecture, not thresholding/preprocessing/class-confusion, is
-  the limiting factor.
+  recall — RESOLVED (partially): EXP-0005 ran a model-variant comparison and
+  returned INCONCLUSIVE overall; the tested variant (YOLO11m) recovered some
+  TRUE_DETECTOR_MISS cases but its advantage mostly disappeared at
+  precision-matched thresholds. Simple model scaling did not solve the
+  problem — see `research/memory/known_failures.md`/EXP-0005 entry below.
 - Whether the human-collected OmniSight-specific dataset
   (`docs/DATASETS.md` Section 8) would change any of these findings — Open
   Images V7 is explicitly documented as not representative of real
   accessibility-usage conditions.
+
+## EXP-0006 — domain-matched training data (registered, not yet executable)
+
+- Whether OmniSight-domain training data (vs. an equal-size resampled-OIV7
+  control) improves Person recall without violating the hazard-precision
+  guardrail is EXP-0006's preregistered question — genuinely unresolved,
+  execution_status=BLOCKED. Two independent human-approval gaps stand
+  between here and a result: (1) `ethics_or_institutional_review_status` for
+  OMNISIGHT-PILOT-001 is `NOT_ASSESSED` (human-only, see
+  `reports/phase_i/OMNISIGHT_PILOT_001_ETHICS_REVIEW_REQUEST.md`); (2) even
+  after pilot data collection, `new_training_approved` and
+  `private_user_data_use_approved` are separate approvals, both currently
+  False, required before any real training run.
 
 ## EXP-0004 (2026-09-05T00:48:38.175398+00:00)
 
