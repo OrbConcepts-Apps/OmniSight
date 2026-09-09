@@ -1,0 +1,19 @@
+experiment_id: EXP-0009
+experiment_family: threshold_postprocessing
+independent_variable: none in the traditional sense -- this experiment resamples the
+  EXISTING evidence (low_conf_predictions.jsonl, eval_manifest.jsonl) at the image
+  level and recomputes metrics from scratch per replicate; the model/weights/threshold
+  under test (person_threshold=0.30 vs baseline 0.40) is unchanged from EXP-0008.
+controls:
+  model: yolov8m-oiv7.pt (same weights as the canonical baseline)
+  manifest: data/manifests/eval_manifest.jsonl (unchanged, resampled at image level
+    only)
+  iou_threshold: 0.7
+  imgsz: 640
+  person_threshold_tested: 0.3
+  n_replicates: 2000
+  seed: 20260909
+configuration: {}
+baseline_run_id: RUN-20260904-002
+validation_requirement: OFFLINE_SIMULATABLE
+estimated_cost: 0.0
