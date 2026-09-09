@@ -178,22 +178,40 @@ class TestExp0001Through0005Integrity:
         finally:
             db.close()
 
-    def test_exp_0006_registered_blocked_no_exp_0007(self):
+    def test_exp_0006_registered_blocked(self):
         """EXP-0006 was authorized and registered (research.register_exp_0006,
         reports/phase_i/EXP0006_REGISTRATION_REPORT.md) -- this test's
         invariant updates accordingly: EXP-0006 now exists but must be
-        BLOCKED (registered, not executable), and no EXP-0007 exists."""
+        BLOCKED (registered, not executable). No longer asserts that no
+        EXP-0007+ exists -- EXP-0007 was subsequently, legitimately
+        registered as an orthogonal (non-training, non-private-data)
+        experiment; see test_exp_0007_terminal_state below."""
         if not DB_PATH.exists():
             pytest.skip("research/omnilab.db not present in this environment")
-        from research.db import ExperimentNotFoundError
 
         db = OmniLabDB()
         try:
             exp = db.get_experiment("EXP-0006")
             assert exp.execution_status == "BLOCKED"
             assert exp.research_verdict == "PENDING"
-            with pytest.raises(ExperimentNotFoundError):
-                db.get_experiment("EXP-0007")
+        finally:
+            db.close()
+
+    def test_exp_0007_terminal_state(self):
+        """EXP-0007 (per-class Person confidence threshold policy,
+        research/_exp0007_preregister.py) completed and was REJECTED for a
+        structural reason (stale pytest invariants asserting no experiment
+        beyond EXP-0006 existed) -- not a scientific finding. Preserved as
+        the honest historical record; the same hypothesis was re-run as a
+        child experiment once those invariants were corrected."""
+        if not DB_PATH.exists():
+            pytest.skip("research/omnilab.db not present in this environment")
+
+        db = OmniLabDB()
+        try:
+            exp = db.get_experiment("EXP-0007")
+            assert exp.execution_status == "COMPLETED"
+            assert exp.research_verdict == "REJECTED"
         finally:
             db.close()
 
