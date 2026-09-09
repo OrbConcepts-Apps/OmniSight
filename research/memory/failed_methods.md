@@ -38,3 +38,11 @@ which guardrail) that the same mistake isn't repeated.
 - Research verdict: REJECTED
 - Hypothesis: Isolating the confidence-threshold reduction to the Person class ONLY (holding every other hazard class fixed at the production conf=0.4 cutoff) recovers meaningful Person recall (>= +0.03 over baseline) while keeping hazard-aggregate precision within the standard guardrail (>= baseline - 0.05), unlike EXP-0001's GLOBAL uniform threshold drop, which collapsed hazard precision well past that guardrail. Mechanism: non-Person hazard classes (esp. Car, precision=0.295 at conf=0.05 per threshold_sweep.json) contribute disproportionate low-confidence false positives to the AGGREGATE hazard-precision guardrail under a global drop; isolating the threshold change to Person alone should avoid that collateral damage.
 - Reasons: test_failure: pytest failed on the experiment branch
+
+## EXP-0009 (2026-09-09T23:22:12.123786+00:00)
+
+- Family: threshold_postprocessing
+- Execution status: COMPLETED
+- Research verdict: FAIL
+- Hypothesis: EXP-0008's PASS (person_threshold=0.30 recovers person.recall +0.066 while hazard -aggregate precision clears the 0.757 guardrail by +0.0098) is ROBUST under image-level bootstrap resampling of the same frozen 380-image eval set: the guardrail is held in at least 95% of resamples, and the recall-improvement direction is robust at the 95% level (2.5th percentile of the resampled recall delta is > 0).
+- Reasons: FRAGILE: bootstrap guardrail_violation_rate=0.369 exceeds the pre-registered tolerance (0.05) -- the hazard-precision guardrail is not reliably held under image-level resampling.

@@ -1,0 +1,9 @@
+[2026-09-09T23:21:44.820208+00:00] branch experiment/EXP-0009 created from 5279f004b007578e81f28ff70c85998a04cf6050
+Loaded C:\Users\Armaa\Downloads\OmniSight\benchmark\results\diagnostics\person_threshold_bootstrap.json
+pre-registered criterion: ROBUST if guardrail_violation_rate <= 0.05 AND 2.5th-percentile(delta person.recall) > 0; FRAGILE if guardrail_violation_rate > 0.05; else INCONCLUSIVE. Fixed before any replicate was computed.
+guardrail_violation_rate=0.369
+recall_delta_ci=[0.036515786687613135, 0.10257352941176465]
+bootstrap classification=FRAGILE
+[2026-09-09T23:22:11.979242+00:00] pytest exit_ok=True
+[2026-09-09T23:22:12.036431+00:00] evaluation_policy verdict=FAILED -> research_verdict=FAIL
+[2026-09-09T23:22:12.036431+00:00] verdict explanation: FAILED: FRAGILE: bootstrap guardrail_violation_rate=0.369 exceeds the pre-registered tolerance (0.05) -- the hazard-precision guardrail is not reliably held under image-level resampling.
