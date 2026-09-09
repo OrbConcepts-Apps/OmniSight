@@ -36,6 +36,16 @@ WebSearch, never training-data recall alone) — this is not started.
   Images V7 is explicitly documented as not representative of real
   accessibility-usage conditions.
 
+## EXP-0008 — per-class Person threshold: is the guardrail margin robust?
+
+- EXP-0008 PASSED with a thin hazard-precision guardrail margin (+0.0098
+  over the 0.757 floor, see `reports/baseline/person_per_class_threshold_analysis.md`).
+  Genuinely unresolved: does this margin survive a bootstrap CI over the
+  380-image manifest, or a second/held-out eval set? Not yet checked --
+  this is exactly the kind of question the reproducibility-gap note above
+  (raw per-image predictions) would let a future pass answer rigorously
+  instead of on a single point estimate.
+
 ## EXP-0006 — domain-matched training data (registered, not yet executable)
 
 - Whether OmniSight-domain training data (vs. an equal-size resampled-OIV7

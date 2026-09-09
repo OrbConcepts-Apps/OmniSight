@@ -45,6 +45,20 @@ ethics determination).
   `new_training_approved=False` and `private_user_data_use_approved=False`
   remain the two flags that must separately be granted before any real
   training run — collection approval does not imply either.
+- EXP-0007 (per-class Person confidence threshold policy) — COMPLETED /
+  REJECTED for a purely structural reason (stale pytest invariants left
+  over from the EXP-0006 era hardcoded "no experiment beyond EXP-0006
+  exists"), not a scientific rejection. Preserved honestly, not deleted.
+- EXP-0008 (identical design, parent_experiment_id=EXP-0007, run after the
+  stale invariants were corrected) — COMPLETED / PASS. Isolating the
+  confidence threshold to Person only (0.30, other hazard classes fixed at
+  0.4) recovers person.recall 0.211->0.277 (+0.0660) while hazard-aggregate
+  precision holds at 0.767, clearing the 0.757 guardrail by a THIN margin
+  (+0.0098) — see `reports/baseline/person_per_class_threshold_analysis.md`
+  for the full result table and caveats (person.precision cost, sampling-
+  noise risk on the thin margin, not a production change by itself). Zero
+  new inference, zero training — reuses EXP-0001's existing conf=0.01
+  capture. Orthogonal to and unaffected by the blocked EXP-0006 pilot.
 
 ## Pilot data collection (OMNISIGHT-PILOT-001)
 
