@@ -75,6 +75,24 @@ ethics determination).
   inference, zero training, zero private data throughout EXP-0007-0010 —
   all reuse EXP-0001's existing conf=0.01 capture. Orthogonal to and
   unaffected by the blocked EXP-0006 pilot.
+- EXP-0011 (NMS/inference-IoU sensitivity, real non-training inference over
+  the 380-image eval set, grid=[0.9,0.8,0.7,0.6,0.5], confidence fixed at
+  production 0.4) — COMPLETED / INCONCLUSIVE. person.recall is literally
+  identical (0.21122112211221122) at EVERY grid point tested — the cleanest
+  possible negative result, no ambiguity. Verified (in code, not assumed)
+  that iou=0.7 is the model's own internal NMS threshold, distinct from the
+  eval-matching IoU (0.5). Mechanism analysis (written before the result):
+  NMS can only choose among already-proposed candidate boxes, never invent
+  one, so it has no plausible channel to fix TRUE_DETECTOR_MISS (the
+  dominant Person failure mode). A methodological artifact was found and
+  corrected: a constant "1/92 TRUE_DETECTOR_MISS recovered" at every grid
+  point (including control) was investigated and shown to be a real
+  detection legitimately claimed by a NEIGHBORING GT box under the official
+  classifier's cross-GT exclusion logic, not a genuine recovery — see
+  `reports/baseline/nms_iou_sensitivity_analysis.md` for the full writeup.
+  **Both post-hoc inference-time levers on the shipped checkpoint —
+  confidence threshold (EXP-0007-0010) and NMS IoU (EXP-0011) — are now
+  exhausted without a robust, meaningful Person-recall improvement.**
 
 ## Pilot data collection (OMNISIGHT-PILOT-001)
 

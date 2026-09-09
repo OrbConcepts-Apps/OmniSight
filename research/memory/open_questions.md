@@ -48,19 +48,32 @@ WebSearch, never training-data recall alone) — this is not started.
   for the full chain. The per-class Person threshold-policy line of inquiry
   is closed as a genuine negative result.
 
-## Un-pursued candidate: NMS/inference IoU sensitivity (identified, not yet run)
+## RESOLVED — NMS/inference-IoU sensitivity (EXP-0011): no effect on Person
 
-- `run_metadata.json`'s `iou_threshold=0.7` is a distinct, untested
-  independent variable from both the confidence-threshold work above and
-  the eval-matching IoU (0.5, used by benchmark/metrics.py's greedy
-  matcher) -- it governs the model's own internal duplicate-box suppression
-  at inference time, not post-hoc filtering. Unlike the threshold-policy
-  experiments, this CANNOT be answered by re-filtering the existing
-  low_conf_predictions.jsonl capture -- it requires new (non-training)
-  inference re-runs at different NMS-IoU settings, similar in cost/shape to
-  EXP-0002's resolution sweep. Identified as a plausible next orthogonal,
-  non-training, non-private-data candidate; not pursued this session for
-  scope reasons, not because it was ruled out.
+- Was: an untested independent variable, distinct from both the
+  confidence-threshold work and the eval-matching IoU. Answered: NMS IoU in
+  [0.5,0.9] produces ZERO change in person.recall (literally identical
+  point estimate at every grid point) and no plausible mechanism to recover
+  TRUE_DETECTOR_MISS cases (verified, not assumed: NMS only selects among
+  already-proposed candidate boxes). See
+  `reports/baseline/nms_iou_sensitivity_analysis.md` for the full writeup,
+  including a self-caught methodological artifact in the recovery-check
+  logic. Closes this branch too as a genuine negative result.
+
+## Un-pursued candidate: test-time augmentation (TTA)
+
+- Distinct mechanism from both closed branches: TTA (ultralytics'
+  `augment=True`, multi-view flip/scale inference merged via NMS across
+  views) genuinely CAN produce a new candidate detection in a transformed
+  view where the single original pass produced none -- unlike confidence
+  threshold or NMS IoU, it has a real, testable channel to recover a
+  TRUE_DETECTOR_MISS case. Real cost: roughly 2-3x inference latency per
+  image, which must be checked against the existing latency guardrail (a
+  real assistive-vision real-time constraint, not just an accuracy metric)
+  -- a plausible way this line of inquiry could fail even if recall
+  improves. Not a hyperparameter sweep (single ON/OFF test, not a grid) --
+  identified as the next well-justified, non-training, non-private-data
+  candidate.
 
 ## EXP-0006 — domain-matched training data (registered, not yet executable)
 
