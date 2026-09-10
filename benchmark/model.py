@@ -67,8 +67,24 @@ class BaselineModel:
         predict() / benchmark/results/baseline/."""
         if iou is None:
             iou = IOU_THRESHOLD
+        return self._run(str(image_path), conf=conf, iou=iou, augment=augment)
+
+    def predict_array_at(self, image_array, conf: float, iou: float | None = None, augment: bool = False) -> list:
+        """Diagnostic-only: identical to predict_at(), but takes an in-memory
+        image (numpy array / PIL.Image) instead of a file path -- ultralytics'
+        predict() natively accepts either (verified against
+        ultralytics/engine/model.py::Model.predict()'s documented `source`
+        types). Added for EXP-0013 (benchmark/diagnostics/tiling.py), which
+        needs to run inference on CROPPED sub-regions of an eval image
+        without writing temporary crop files to disk. Never used by
+        predict() / benchmark/results/baseline/."""
+        if iou is None:
+            iou = IOU_THRESHOLD
+        return self._run(image_array, conf=conf, iou=iou, augment=augment)
+
+    def _run(self, source, conf: float, iou: float, augment: bool) -> list:
         results = self._model.predict(
-            source=str(image_path),
+            source=source,
             imgsz=IMGSZ,
             conf=conf,
             iou=iou,
@@ -86,11 +102,11 @@ class BaselineModel:
         for box in result.boxes:
             cls_idx = int(box.cls.item())
             class_name = self.class_names[cls_idx]
-            conf = float(box.conf.item())
+            box_conf = float(box.conf.item())
             x1, y1, x2, y2 = (v.item() for v in box.xyxy[0])
             x = x1 / img_w
             y = y1 / img_h
             w = (x2 - x1) / img_w
             h = (y2 - y1) / img_h
-            preds.append(RawPrediction(class_name=class_name, bbox=(x, y, w, h), confidence=conf))
+            preds.append(RawPrediction(class_name=class_name, bbox=(x, y, w, h), confidence=box_conf))
         return preds
