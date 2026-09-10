@@ -162,6 +162,24 @@ ethics determination).
   `ethics_or_institutional_review_status` (human-only, unchanged) and then
   separately on `new_training_approved`/`private_user_data_use_approved`.
 
+## CLOSEOUT (human-accepted, 2026-09-09/10): EXP-0007-0013 branch closed
+
+The non-training inference-time investigation (Person confidence threshold,
+NMS IoU, TTA, image tiling) is CLOSED. Canonical summary:
+`reports/baseline/EXPERIMENT_MATRIX_0001_0013.md` (hypothesis/mechanism/
+result/verdict/implication for every experiment, EXP-0001-0013, plus an
+explicit guard against reopening any of these four mechanisms without
+genuinely new evidence — a different checkpoint, new eval data, a
+materially different mechanism, or a named methodological flaw; a
+grid/overlap/configuration re-sweep of an already-closed mechanism does
+NOT qualify). EXP-0008's PASS remains on record, unretracted, alongside
+EXP-0009/0010's evidence that it is fragile and insufficient alone for any
+production recommendation — both are preserved, neither overwrites the
+other. All latency figures throughout are Windows/RTX-3070-Ti only, never
+converted into an iPhone/CoreML/ANE claim. Next step: EXP-0006 /
+OMNISIGHT-PILOT-001, gated on the ethics/institutional-review
+determination (human-handled separately, not by this lab's own code).
+
 ## Phase I/J infrastructure status
 
 - Phase I proposal-only autonomous loop: built and exercised (CANDIDATE-0001,
