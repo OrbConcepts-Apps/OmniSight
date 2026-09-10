@@ -1,0 +1,71 @@
+{
+  "procedure": {
+    "confidence_threshold_fixed_at": 0.4,
+    "nms_iou_fixed_at": 0.7,
+    "guardrail_floor": 0.757,
+    "min_meaningful_delta": 0.03,
+    "max_latency_regression_pct": 50.0
+  },
+  "conditions": {
+    "augment_False": {
+      "hazard": {
+        "precision": 0.8070175438596491,
+        "recall": 0.4804177545691906,
+        "tp": 368,
+        "fp": 88,
+        "fn": 398
+      },
+      "person": {
+        "recall": 0.21122112211221122,
+        "precision": 0.6666666666666666,
+        "tp": 64,
+        "fp": 32,
+        "fn": 239,
+        "num_gt": 303
+      },
+      "latency_ms": {
+        "p50": 22.908299999471637,
+        "p95": 62.96420000035141
+      },
+      "true_detector_miss_recovery": {
+        "denominator": 92,
+        "recovered_strict_iou_ge_0.5": 1,
+        "spatially_associated_iou_ge_0.3": 1
+      }
+    },
+    "augment_True": {
+      "hazard": {
+        "precision": 0.7438330170777988,
+        "recall": 0.5117493472584856,
+        "tp": 392,
+        "fp": 135,
+        "fn": 374
+      },
+      "person": {
+        "recall": 0.23432343234323433,
+        "precision": 0.5867768595041323,
+        "tp": 71,
+        "fp": 50,
+        "fn": 232,
+        "num_gt": 303
+      },
+      "latency_ms": {
+        "p50": 41.1629999998695,
+        "p95": 83.11069999945175
+      },
+      "true_detector_miss_recovery": {
+        "denominator": 92,
+        "recovered_strict_iou_ge_0.5": 1,
+        "spatially_associated_iou_ge_0.3": 1
+      }
+    }
+  },
+  "summary": {
+    "person_recall_delta": 0.023102310231023104,
+    "guardrail_satisfied": false,
+    "meaningful_delta": false,
+    "latency_regression_pct": 31.99675370923144,
+    "latency_guardrail_satisfied": true,
+    "point_estimate_pass": false
+  }
+}
