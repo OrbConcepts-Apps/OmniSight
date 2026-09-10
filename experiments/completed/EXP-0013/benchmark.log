@@ -1,0 +1,9 @@
+[2026-09-10T01:19:00.829837+00:00] branch experiment/EXP-0013 created from 1d42efcc516534171a5872887d8165538a95676d
+Loaded C:\Users\Armaa\Downloads\OmniSight\benchmark\results\diagnostics\tile_sweep.json
+summary: {'person_recall_delta_vs_baseline': 0.019801980198019792, 'guardrail_satisfied': False, 'meaningful_delta': False, 'point_estimate_pass': False}
+TRUE_DETECTOR_MISS recovery: {'denominator': 92, 'recovered_count': 0, 'recovered_small_subset_count': 0, 'recovered_small_subset_denominator': 68, 'recovered_non_small_count': 0, 'recovered_keys_audit': []}
+boundary_analysis: {'all_92_tdm_cases': {'single_tile_full': 76, 'boundary_split': 16, 'no_tile_overlap': 0}, 'by_recovery_outcome': {'recovered': {'single_tile_full': 0, 'boundary_split': 0, 'no_tile_overlap': 0}, 'not_recovered': {'single_tile_full': 76, 'boundary_split': 16, 'no_tile_overlap': 0}}}
+latency: {'baseline_full_image_p95_reused': 57.12579999999434, 'new_tile_passes_only_p50': 66.42089999877498, 'new_tile_passes_only_p95': 109.13910000090254, 'estimated_total_pipeline_p95': 166.2649000008969, 'multiplier_vs_baseline': 2.910504535619866}
+[2026-09-10T01:19:28.887606+00:00] pytest exit_ok=True
+[2026-09-10T01:19:29.062050+00:00] evaluation_policy verdict=FAILED -> research_verdict=FAIL
+[2026-09-10T01:19:29.062050+00:00] verdict explanation: FAILED: guardrail 'hazard.precision' violated: 0.3139 does not satisfy gte 0.7570 (hazard precision must not drop more than 0.05 below baseline); guardrail 'latency.p95_ms' violated: 166.2649 does not satisfy lte 85.6887 (p95 latency must not exceed 1.5x baseline)

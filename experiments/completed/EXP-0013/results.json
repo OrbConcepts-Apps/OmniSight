@@ -1,0 +1,65 @@
+{
+  "baseline_metrics": {
+    "hazard": {
+      "precision": 0.8070175438596491,
+      "recall": 0.4804177545691906
+    },
+    "person": {
+      "recall": 0.21122112211221122,
+      "precision": 0.6666666666666666,
+      "num_gt": 303
+    },
+    "latency": {
+      "p95_ms": 57.12579999999434
+    }
+  },
+  "candidate_metrics": {
+    "hazard": {
+      "precision": 0.31385108086469177,
+      "recall": 0.5117493472584856
+    },
+    "person": {
+      "recall": 0.23102310231023102,
+      "precision": 0.36082474226804123,
+      "num_gt": 303
+    },
+    "latency": {
+      "p95_ms": 166.2649000008969
+    }
+  },
+  "raw_evaluation_policy_verdict": "FAILED",
+  "execution_status": "COMPLETED",
+  "research_verdict": "FAIL",
+  "guardrail_results": [
+    {
+      "metric": "hazard.precision",
+      "value": 0.31385108086469177,
+      "threshold": 0.757017543859649,
+      "comparator": "gte",
+      "satisfied": false,
+      "margin": 0.44316646299495727
+    },
+    {
+      "metric": "hazard.recall",
+      "value": 0.5117493472584856,
+      "threshold": 0.4604177545691906,
+      "comparator": "gte",
+      "satisfied": true,
+      "margin": 0.05133159268929505
+    },
+    {
+      "metric": "latency.p95_ms",
+      "value": 166.2649000008969,
+      "threshold": 85.68869999999151,
+      "comparator": "lte",
+      "satisfied": false,
+      "margin": 80.57620000090537
+    }
+  ],
+  "reasons": [
+    "guardrail 'hazard.precision' violated: 0.3139 does not satisfy gte 0.7570 (hazard precision must not drop more than 0.05 below baseline)",
+    "guardrail 'latency.p95_ms' violated: 166.2649 does not satisfy lte 85.6887 (p95 latency must not exceed 1.5x baseline)"
+  ],
+  "notes": "Image tiling (2x2 grid + reused full-image pass, 20% overlap, cross-tile NMS merge IoU=0.7), real non-training inference over the 380-image eval set. person.recall_delta=+0.0198. TRUE_DETECTOR_MISS recovery (audited via the real greedy-match exclusion logic, not a naive per-case check): 0/92 overall, 0/68 of the small-object subset. Latency multiplier vs baseline: 2.91x. Evidence source: benchmark\\results\\diagnostics\\tile_sweep.json.",
+  "result_run_id": "RUN-20260904-002+tile_sweep@2x2_overlap0.2"
+}

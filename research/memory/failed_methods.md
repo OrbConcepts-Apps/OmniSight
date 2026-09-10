@@ -62,3 +62,11 @@ which guardrail) that the same mistake isn't repeated.
 - Research verdict: FAIL
 - Hypothesis: Test-time augmentation (ultralytics augment=True: multi-view flip/scale inference merged via NMS), confidence and NMS IoU fixed at production values, recovers meaningful Person recall (>= +0.03 vs the augment=False control) while keeping hazard-aggregate precision at or above the standard guardrail (>= 0.757) AND keeping p95 latency within the lab's existing +50% regression guardrail. Mechanism: unlike confidence-threshold or NMS-IoU changes (which can only re-select among a single pass's already-proposed candidates), TTA runs multiple transformed views through the model and can produce a genuinely NEW candidate detection in a view where the original pass proposed nothing -- the one channel tested so far with a real mechanism to potentially recover a TRUE_DETECTOR_MISS case.
 - Reasons: guardrail 'hazard.precision' violated: 0.7438 does not satisfy gte 0.7570 (hazard precision must not drop more than 0.05 below baseline)
+
+## EXP-0013 (2026-09-10T01:19:29.174903+00:00)
+
+- Family: small_object
+- Execution status: COMPLETED
+- Research verdict: FAIL
+- Hypothesis: Tiling (cropping each image into 4 overlapping 2x2-grid regions plus the full frame, running inference on each at the fixed production imgsz=640/conf=0.4/iou=0.7, then merging via cross-tile NMS) recovers meaningful Person recall (>= +0.03 vs the frozen single-pass baseline) while keeping hazard-aggregate precision at or above the standard guardrail (>= 0.757), because it increases the EFFECTIVE detector-input scale of small/distant Person instances without changing the network's own input resolution (unlike EXP-0002's failed global-resize approach).
+- Reasons: guardrail 'hazard.precision' violated: 0.3139 does not satisfy gte 0.7570 (hazard precision must not drop more than 0.05 below baseline); guardrail 'latency.p95_ms' violated: 166.2649 does not satisfy lte 85.6887 (p95 latency must not exceed 1.5x baseline)
