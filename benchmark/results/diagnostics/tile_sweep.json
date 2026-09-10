@@ -1,0 +1,68 @@
+{
+  "procedure": {
+    "n_cols": 2,
+    "n_rows": 2,
+    "overlap_fraction": 0.2,
+    "merge_iou": 0.7,
+    "confidence_threshold": 0.4,
+    "per_tile_nms_iou": 0.7,
+    "full_image_pass_source": "reused from benchmark/results/baseline/predictions.jsonl (not re-inferred)",
+    "guardrail_floor": 0.757,
+    "min_meaningful_delta": 0.03
+  },
+  "hazard": {
+    "precision": 0.31385108086469177,
+    "recall": 0.5117493472584856,
+    "tp": 392,
+    "fp": 857,
+    "fn": 374
+  },
+  "person": {
+    "recall": 0.23102310231023102,
+    "precision": 0.36082474226804123,
+    "tp": 70,
+    "fp": 124,
+    "fn": 233,
+    "num_gt": 303
+  },
+  "summary": {
+    "person_recall_delta_vs_baseline": 0.019801980198019792,
+    "guardrail_satisfied": false,
+    "meaningful_delta": false,
+    "point_estimate_pass": false
+  },
+  "true_detector_miss_recovery": {
+    "denominator": 92,
+    "recovered_count": 0,
+    "recovered_small_subset_count": 0,
+    "recovered_small_subset_denominator": 68,
+    "recovered_non_small_count": 0,
+    "recovered_keys_audit": []
+  },
+  "boundary_analysis": {
+    "all_92_tdm_cases": {
+      "single_tile_full": 76,
+      "boundary_split": 16,
+      "no_tile_overlap": 0
+    },
+    "by_recovery_outcome": {
+      "recovered": {
+        "single_tile_full": 0,
+        "boundary_split": 0,
+        "no_tile_overlap": 0
+      },
+      "not_recovered": {
+        "single_tile_full": 76,
+        "boundary_split": 16,
+        "no_tile_overlap": 0
+      }
+    }
+  },
+  "latency_ms": {
+    "baseline_full_image_p95_reused": 57.12579999999434,
+    "new_tile_passes_only_p50": 66.42089999877498,
+    "new_tile_passes_only_p95": 109.13910000090254,
+    "estimated_total_pipeline_p95": 166.2649000008969,
+    "multiplier_vs_baseline": 2.910504535619866
+  }
+}
