@@ -1479,6 +1479,65 @@ def run_exp_0011(exp: Experiment, exp_dir: Path) -> ExperimentRunResult:
     )
 
 
+def _tta_sweep_path() -> Path:
+    return REPO_ROOT / "benchmark" / "results" / "diagnostics" / "tta_sweep.json"
+
+
+def run_exp_0012(exp: Experiment, exp_dir: Path) -> ExperimentRunResult:
+    """EXP-0012: test-time augmentation (TTA) sensitivity test. Reads the
+    results of benchmark/diagnostics/tta_sweep.py (real, non-training
+    inference, run separately). augment=False is the control (must
+    reproduce the official baseline); augment=True is the sole candidate --
+    a single ON/OFF test, not a grid, so there is no representative-
+    selection rule needed."""
+    sweep_path = _tta_sweep_path()
+    if not sweep_path.exists():
+        raise RunnerError(f"missing evidence file: {sweep_path}")
+    sweep = json.loads(sweep_path.read_text(encoding="utf-8"))
+
+    control = sweep["conditions"]["augment_False"]
+    candidate = sweep["conditions"]["augment_True"]
+
+    baseline_metrics = {
+        "hazard": {"precision": control["hazard"]["precision"], "recall": control["hazard"]["recall"]},
+        "person": {"recall": control["person"]["recall"], "precision": control["person"]["precision"], "num_gt": control["person"]["num_gt"]},
+        "latency": {"p95_ms": control["latency_ms"]["p95"]},
+    }
+    candidate_metrics = {
+        "hazard": {"precision": candidate["hazard"]["precision"], "recall": candidate["hazard"]["recall"]},
+        "person": {"recall": candidate["person"]["recall"], "precision": candidate["person"]["precision"], "num_gt": candidate["person"]["num_gt"]},
+        "latency": {"p95_ms": candidate["latency_ms"]["p95"]},
+    }
+
+    policy = default_hazard_policy(control["hazard"]["precision"], control["hazard"]["recall"])
+
+    tdm = candidate["true_detector_miss_recovery"]
+    s = sweep["summary"]
+    notes = (
+        f"Test-time augmentation (augment=True) vs control (augment=False), real non-training "
+        f"inference over the 380-image eval set, confidence/NMS-IoU fixed at production values. "
+        f"person.recall_delta={s['person_recall_delta']:+.4f}, latency_regression="
+        f"{s['latency_regression_pct']:+.1f}% (guardrail: <=50%). TRUE_DETECTOR_MISS recovery: "
+        f"{tdm['recovered_strict_iou_ge_0.5']}/{tdm['denominator']} strict, "
+        f"{tdm['spatially_associated_iou_ge_0.3']}/{tdm['denominator']} spatially-associated. "
+        f"Evidence source: {sweep_path.relative_to(REPO_ROOT)}."
+    )
+
+    return ExperimentRunResult(
+        baseline_metrics=baseline_metrics,
+        candidate_metrics=candidate_metrics,
+        policy=policy,
+        verdict_interpretation={"PASSED": "PASS", "FAILED": "FAIL", "INCONCLUSIVE": "INCONCLUSIVE"},
+        notes=notes,
+        result_run_id="RUN-20260904-002+tta_sweep@augment=True",
+        log_lines=[
+            f"Loaded {sweep_path}",
+            f"summary: {s}",
+            f"TRUE_DETECTOR_MISS recovery: {tdm}",
+        ],
+    )
+
+
 RUNNERS = {
     "EXP-0001": run_exp_0001,
     "EXP-0002": run_exp_0002,
@@ -1488,6 +1547,7 @@ RUNNERS = {
     "EXP-0009": run_exp_0009,
     "EXP-0010": run_exp_0010,
     "EXP-0011": run_exp_0011,
+    "EXP-0012": run_exp_0012,
     "EXP-0007": run_exp_0007,
     # EXP-0008: identical design to EXP-0007 (a clean re-run after EXP-0007's
     # own branch run was REJECTED for a structural reason -- stale pytest

@@ -49,7 +49,7 @@ class BaselineModel:
         official baseline. Delegates to predict_at() with the config defaults."""
         return self.predict_at(image_path, conf=CONF_THRESHOLD, iou=IOU_THRESHOLD)
 
-    def predict_at(self, image_path: Path, conf: float, iou: float | None = None) -> list:
+    def predict_at(self, image_path: Path, conf: float, iou: float | None = None, augment: bool = False) -> list:
         """Diagnostic-only: run inference at an arbitrary confidence/IoU, e.g. for
         the threshold-sweep / PR-curve / Person-failure low-confidence capture
         (benchmark/diagnostics/). NEVER used to produce benchmark/results/baseline/
@@ -57,7 +57,14 @@ class BaselineModel:
         benchmark/config.py's CONF_THRESHOLD/IOU_THRESHOLD. This method exists so
         diagnostic scripts don't duplicate the pixel->normalized-xywh conversion
         logic below (a second, drifting copy of that logic would itself be a bug
-        risk of exactly the kind this benchmark's harness audits for)."""
+        risk of exactly the kind this benchmark's harness audits for).
+
+        `augment` (default False, matching ultralytics' own default, so every
+        existing caller's behavior is byte-identical to before this parameter
+        existed) enables ultralytics' built-in test-time augmentation
+        (multi-view flip/scale inference merged via NMS) -- added for
+        EXP-0012 (benchmark/diagnostics/tta_sweep.py). Never used by
+        predict() / benchmark/results/baseline/."""
         if iou is None:
             iou = IOU_THRESHOLD
         results = self._model.predict(
@@ -68,6 +75,7 @@ class BaselineModel:
             device=self.device,
             verbose=False,
             batch=1,
+            augment=augment,
         )
         result = results[0]
         preds: list = []
