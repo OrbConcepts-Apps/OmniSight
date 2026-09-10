@@ -82,20 +82,36 @@ WebSearch, never training-data recall alone) — this is not started.
   still blocked on ethics_or_institutional_review_status, then separately
   on new_training_approved/private_user_data_use_approved.
 
-## Un-pursued candidate: image tiling (identified, materially more complex)
+## RESOLVED — image tiling (EXP-0013): zero recovery, decisive negative
 
-- Crop each image into overlapping sub-regions, run inference per tile at
-  full imgsz (increasing effective resolution for small/distant objects),
-  remap tile-local coordinates back to full-image-normalized space, merge
-  via cross-tile NMS. Mechanistically distinct from EXP-0002's failed
-  global-resize approach (a different way of increasing effective
-  resolution, targeted specifically at the small-object subset: 68/92
-  TRUE_DETECTOR_MISS cases are "small" per EXP-0003's breakdown) and from
-  all three now-closed inference-time levers. Not pursued in the same
-  burst as EXP-0007-0012 because it requires new, correctness-sensitive
-  spatial logic (coordinate remapping, boundary-split-object handling,
-  cross-tile duplicate merging) unlike those single-parameter ON/OFF or
-  grid tests -- flagged deliberately rather than rushed.
+- Was: does increasing effective object scale via tiling recover
+  small/distant TRUE_DETECTOR_MISS cases. Answered: NO. 0/92 recovered
+  (0/68 small subset), including 0/76 cases geometrically fully contained
+  in a single crop tile (the mechanism's most favorable possible
+  condition). Hard hazard-precision guardrail violation (0.314 vs 0.757),
+  root-caused to large objects fragmenting across tile boundaries into
+  non-duplicate-recognized partial-view false positives. 2.91x latency.
+  See `reports/baseline/tiling_analysis.md`. Closes this branch decisively
+  -- not a marginal or tunable result.
+
+## SYNTHESIS: all four non-training, image-only levers on the shipped
+## checkpoint are now exhausted (EXP-0007-0013)
+
+- Person confidence threshold, NMS IoU, test-time augmentation, and image
+  tiling have each been tested with an explicit, falsifiable mechanism
+  analysis and closed as negative or fragile. No further mechanistically
+  distinct, non-training, image-only candidate on this single checkpoint
+  has been identified. This materially strengthens -- without proving --
+  the hypothesis that TRUE_DETECTOR_MISS (the dominant Person failure
+  mode) is a representational/training-data limitation. EXP-0006
+  (domain-matched training data) is the most promising identified
+  remaining lever, still blocked on ethics_or_institutional_review_status,
+  then separately on new_training_approved/private_user_data_use_approved.
+  A possible but explicitly discouraged follow-up (per this task's own
+  warning against hyperparameter fishing) would be a small tiling
+  grid/overlap sensitivity sweep -- not pursued, since the current result
+  is decisive (0/92, not a borderline margin) rather than configuration-
+  sensitive.
 
 ## EXP-0006 — domain-matched training data (registered, not yet executable)
 

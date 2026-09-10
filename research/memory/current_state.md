@@ -132,18 +132,35 @@ ethics determination).
   the most promising remaining lever — still blocked on the same two human
   approvals (ethics status, then training/private-data approval), unchanged
   by any of this inference-time work.
-- Next identified, not-yet-pursued candidate: image TILING (crop into
-  overlapping sub-regions, run inference per tile at full imgsz, remap
-  coordinates, merge via cross-tile NMS) — mechanistically distinct from
-  the failed global-resize approach (EXP-0002) and from all three closed
-  inference-time levers, directly targeting the small/distant-object
-  subset of TRUE_DETECTOR_MISS (68/92 TRUE_DETECTOR_MISS cases are "small",
-  per EXP-0003's size breakdown). Materially more complex to implement
-  correctly (coordinate remapping, boundary-split-object handling,
-  cross-tile duplicate merging) than the three single-parameter ON/OFF or
-  grid tests just completed -- flagged as the next legitimate step, not
-  executed in the same burst, specifically to avoid rushing a
-  correctness-sensitive new code path.
+- EXP-0013 (image tiling: 2x2 crop grid + reused full-image pass, 20%
+  overlap, cross-tile NMS merge, real non-training inference, confidence/
+  NMS-IoU fixed at production) — COMPLETED / FAIL. Mechanism verified
+  against the actual ultralytics LetterBox pipeline before running (not
+  assumed): all 380 images exceed 640x640, so tiling genuinely increases
+  effective object scale within the fixed 640 network input, distinct from
+  EXP-0002's failed global-resize (which changed the network's own input
+  resolution and made recall worse). **Zero TRUE_DETECTOR_MISS recovery
+  (0/92, 0/68 small subset)**, including 0/76 of the cases that were
+  geometrically fully contained within a single crop tile — the most
+  favorable possible condition for the hypothesized mechanism. Hard
+  hazard-precision guardrail violation (0.314 vs 0.757), root-caused (not
+  hand-waved) to large objects (Bicycle/Car) spanning tiles producing
+  low-mutual-IoU partial-view duplicates that same-class NMS can't merge.
+  2.91x latency. Preceded by 19 hand-computed synthetic-geometry
+  correctness tests (tests/test_tiling.py), all passing, before any
+  benchmark ran. See `reports/baseline/tiling_analysis.md`.
+- **SYNTHESIS**: all four mechanistically distinct, non-training,
+  image-only levers on the shipped checkpoint are now tested and closed as
+  negative — Person confidence threshold (EXP-0007-0010), NMS IoU
+  (EXP-0011), test-time augmentation (EXP-0012), image tiling (EXP-0013).
+  No further mechanistically distinct, non-training, image-only candidate
+  on this single checkpoint has been identified. This materially
+  strengthens — without by itself proving — the hypothesis that the
+  dominant Person failure mode (TRUE_DETECTOR_MISS) is a representational/
+  training-data limitation. EXP-0006 (domain-matched training data)
+  remains the most promising identified remaining lever, still blocked on
+  `ethics_or_institutional_review_status` (human-only, unchanged) and then
+  separately on `new_training_approved`/`private_user_data_use_approved`.
 
 ## Phase I/J infrastructure status
 
