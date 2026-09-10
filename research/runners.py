@@ -1538,6 +1538,65 @@ def run_exp_0012(exp: Experiment, exp_dir: Path) -> ExperimentRunResult:
     )
 
 
+def _tile_sweep_path() -> Path:
+    return REPO_ROOT / "benchmark" / "results" / "diagnostics" / "tile_sweep.json"
+
+
+def run_exp_0013(exp: Experiment, exp_dir: Path) -> ExperimentRunResult:
+    """EXP-0013: image tiling for small/distant Person recovery. Reads the
+    results of benchmark/diagnostics/tile_sweep.py (real, non-training
+    inference on the 4 crop tiles per image; the full-image pass is reused
+    directly from the official baseline capture). Single preregistered
+    primary configuration -- not a grid, so no representative-selection
+    rule is needed."""
+    sweep_path = _tile_sweep_path()
+    if not sweep_path.exists():
+        raise RunnerError(f"missing evidence file: {sweep_path}")
+    sweep = json.loads(sweep_path.read_text(encoding="utf-8"))
+
+    baseline_metrics = {
+        "hazard": {"precision": 0.8070175438596491, "recall": 0.4804177545691906},
+        "person": {"recall": 0.21122112211221122, "precision": 0.6666666666666666, "num_gt": sweep["person"]["num_gt"]},
+        "latency": {"p95_ms": sweep["latency_ms"]["baseline_full_image_p95_reused"]},
+    }
+    candidate_metrics = {
+        "hazard": {"precision": sweep["hazard"]["precision"], "recall": sweep["hazard"]["recall"]},
+        "person": {"recall": sweep["person"]["recall"], "precision": sweep["person"]["precision"], "num_gt": sweep["person"]["num_gt"]},
+        "latency": {"p95_ms": sweep["latency_ms"]["estimated_total_pipeline_p95"]},
+    }
+
+    policy = default_hazard_policy(baseline_metrics["hazard"]["precision"], baseline_metrics["hazard"]["recall"])
+
+    tdm = sweep["true_detector_miss_recovery"]
+    lat = sweep["latency_ms"]
+    notes = (
+        f"Image tiling (2x2 grid + reused full-image pass, 20% overlap, cross-tile NMS merge "
+        f"IoU={sweep['procedure']['merge_iou']}), real non-training inference over the 380-image "
+        f"eval set. person.recall_delta={sweep['summary']['person_recall_delta_vs_baseline']:+.4f}. "
+        f"TRUE_DETECTOR_MISS recovery (audited via the real greedy-match exclusion logic, not a "
+        f"naive per-case check): {tdm['recovered_count']}/{tdm['denominator']} overall, "
+        f"{tdm['recovered_small_subset_count']}/{tdm['recovered_small_subset_denominator']} of the "
+        f"small-object subset. Latency multiplier vs baseline: {lat['multiplier_vs_baseline']:.2f}x. "
+        f"Evidence source: {sweep_path.relative_to(REPO_ROOT)}."
+    )
+
+    return ExperimentRunResult(
+        baseline_metrics=baseline_metrics,
+        candidate_metrics=candidate_metrics,
+        policy=policy,
+        verdict_interpretation={"PASSED": "PASS", "FAILED": "FAIL", "INCONCLUSIVE": "INCONCLUSIVE"},
+        notes=notes,
+        result_run_id="RUN-20260904-002+tile_sweep@2x2_overlap0.2",
+        log_lines=[
+            f"Loaded {sweep_path}",
+            f"summary: {sweep['summary']}",
+            f"TRUE_DETECTOR_MISS recovery: {tdm}",
+            f"boundary_analysis: {sweep['boundary_analysis']}",
+            f"latency: {lat}",
+        ],
+    )
+
+
 RUNNERS = {
     "EXP-0001": run_exp_0001,
     "EXP-0002": run_exp_0002,
@@ -1548,6 +1607,7 @@ RUNNERS = {
     "EXP-0010": run_exp_0010,
     "EXP-0011": run_exp_0011,
     "EXP-0012": run_exp_0012,
+    "EXP-0013": run_exp_0013,
     "EXP-0007": run_exp_0007,
     # EXP-0008: identical design to EXP-0007 (a clean re-run after EXP-0007's
     # own branch run was REJECTED for a structural reason -- stale pytest
