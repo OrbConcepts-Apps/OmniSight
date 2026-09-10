@@ -60,20 +60,42 @@ WebSearch, never training-data recall alone) — this is not started.
   including a self-caught methodological artifact in the recovery-check
   logic. Closes this branch too as a genuine negative result.
 
-## Un-pursued candidate: test-time augmentation (TTA)
+## RESOLVED — test-time augmentation (EXP-0012): negative, worse tradeoff than threshold work
 
-- Distinct mechanism from both closed branches: TTA (ultralytics'
-  `augment=True`, multi-view flip/scale inference merged via NMS across
-  views) genuinely CAN produce a new candidate detection in a transformed
-  view where the single original pass produced none -- unlike confidence
-  threshold or NMS IoU, it has a real, testable channel to recover a
-  TRUE_DETECTOR_MISS case. Real cost: roughly 2-3x inference latency per
-  image, which must be checked against the existing latency guardrail (a
-  real assistive-vision real-time constraint, not just an accuracy metric)
-  -- a plausible way this line of inquiry could fail even if recall
-  improves. Not a hyperparameter sweep (single ON/OFF test, not a grid) --
-  identified as the next well-justified, non-training, non-private-data
-  candidate.
+- Was: does TTA's multi-view mechanism recover meaningful recall. Answered:
+  recall improved +0.0231 (below the +0.03 bar) while hazard-precision hard
+  -violated the guardrail (0.7438 vs 0.757). TRUE_DETECTOR_MISS recovery
+  unchanged (1/92, same artifact case) -- the modest gain is not coming
+  from the targeted failure mode. Strictly worse cost/benefit than the
+  already-closed threshold=0.30 candidate. Closes this branch.
+
+## SYNTHESIS: all three tested inference-time levers on the shipped
+## checkpoint are now negative (EXP-0007-0012)
+
+- Person confidence threshold, NMS IoU, and TTA have each been tested with
+  an explicit mechanism analysis and closed as negative or fragile. None
+  can fix TRUE_DETECTOR_MISS (92/239 baseline Person FNs, 38.5%, the
+  dominant failure mode) because none can make the model recognize
+  something it does not represent well enough at any decision-time
+  setting. This strengthens the case that EXP-0006's original hypothesis
+  (domain-matched training data) is the most promising remaining lever --
+  still blocked on ethics_or_institutional_review_status, then separately
+  on new_training_approved/private_user_data_use_approved.
+
+## Un-pursued candidate: image tiling (identified, materially more complex)
+
+- Crop each image into overlapping sub-regions, run inference per tile at
+  full imgsz (increasing effective resolution for small/distant objects),
+  remap tile-local coordinates back to full-image-normalized space, merge
+  via cross-tile NMS. Mechanistically distinct from EXP-0002's failed
+  global-resize approach (a different way of increasing effective
+  resolution, targeted specifically at the small-object subset: 68/92
+  TRUE_DETECTOR_MISS cases are "small" per EXP-0003's breakdown) and from
+  all three now-closed inference-time levers. Not pursued in the same
+  burst as EXP-0007-0012 because it requires new, correctness-sensitive
+  spatial logic (coordinate remapping, boundary-split-object handling,
+  cross-tile duplicate merging) unlike those single-parameter ON/OFF or
+  grid tests -- flagged deliberately rather than rushed.
 
 ## EXP-0006 — domain-matched training data (registered, not yet executable)
 

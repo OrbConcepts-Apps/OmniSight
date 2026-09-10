@@ -109,6 +109,42 @@ ethics determination).
 - Zero media collected, zero participants contacted, zero consent records
   exist anywhere in this repository.
 
+## EXP-0012 and the inference-time-lever synthesis
+
+- EXP-0012 (test-time augmentation, ultralytics `augment=True` vs
+  `augment=False` control, real non-training inference, confidence/NMS-IoU
+  fixed at production) — COMPLETED / FAIL. person.recall improved +0.0231
+  (below the +0.03 bar) while hazard-aggregate precision hard-violated the
+  guardrail (0.7438 vs 0.757, margin -0.0132). TRUE_DETECTOR_MISS recovery
+  stayed 1/92 (same known artifact case) — TTA's modest gain does not come
+  from the targeted TRUE_DETECTOR_MISS cases. Strictly worse cost/benefit
+  tradeoff than the already-closed threshold=0.30 candidate.
+- **Synthesis**: three mechanistically distinct, non-training,
+  inference-time-only levers on the shipped checkpoint have now all been
+  tested and closed as negative: Person confidence threshold
+  (EXP-0007-0010), NMS IoU (EXP-0011), test-time augmentation (EXP-0012).
+  None can fix the dominant Person failure mode (TRUE_DETECTOR_MISS, 92/239
+  baseline FNs, 38.5%) because none can make the model recognize something
+  it fundamentally does not represent well enough at ANY decision-time
+  setting — a representational/training-data limitation, not a
+  decision-policy one. This strengthens (does not merely coexist with) the
+  case for EXP-0006's original hypothesis (domain-matched training data) as
+  the most promising remaining lever — still blocked on the same two human
+  approvals (ethics status, then training/private-data approval), unchanged
+  by any of this inference-time work.
+- Next identified, not-yet-pursued candidate: image TILING (crop into
+  overlapping sub-regions, run inference per tile at full imgsz, remap
+  coordinates, merge via cross-tile NMS) — mechanistically distinct from
+  the failed global-resize approach (EXP-0002) and from all three closed
+  inference-time levers, directly targeting the small/distant-object
+  subset of TRUE_DETECTOR_MISS (68/92 TRUE_DETECTOR_MISS cases are "small",
+  per EXP-0003's size breakdown). Materially more complex to implement
+  correctly (coordinate remapping, boundary-split-object handling,
+  cross-tile duplicate merging) than the three single-parameter ON/OFF or
+  grid tests just completed -- flagged as the next legitimate step, not
+  executed in the same burst, specifically to avoid rushing a
+  correctness-sensitive new code path.
+
 ## Phase I/J infrastructure status
 
 - Phase I proposal-only autonomous loop: built and exercised (CANDIDATE-0001,
