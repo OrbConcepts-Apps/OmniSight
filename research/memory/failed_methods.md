@@ -54,3 +54,11 @@ which guardrail) that the same mistake isn't repeated.
 - Research verdict: FAIL
 - Hypothesis: At least one person_threshold in the finer grid [0.40,0.38,0.36,0.34,0.32,0.30] is simultaneously (a) ROBUST under image-level bootstrap resampling -- guardrail_violation_rate<=0.05, per EXP-0009's criterion -- AND (b) achieves a mean recall delta vs the production baseline (0.40) of at least the lab's established minimum meaningful delta (0.03, used by every experiment since EXP-0001).
 - Reasons: threshold(s) ['0.38'] are ROBUST on the guardrail, but their mean recall delta falls short of the established minimum meaningful delta (0.03) -- robustness and meaningfulness are in tension across the tested grid; no threshold clears both.
+
+## EXP-0012 (2026-09-10T00:02:49.857013+00:00)
+
+- Family: threshold_postprocessing
+- Execution status: COMPLETED
+- Research verdict: FAIL
+- Hypothesis: Test-time augmentation (ultralytics augment=True: multi-view flip/scale inference merged via NMS), confidence and NMS IoU fixed at production values, recovers meaningful Person recall (>= +0.03 vs the augment=False control) while keeping hazard-aggregate precision at or above the standard guardrail (>= 0.757) AND keeping p95 latency within the lab's existing +50% regression guardrail. Mechanism: unlike confidence-threshold or NMS-IoU changes (which can only re-select among a single pass's already-proposed candidates), TTA runs multiple transformed views through the model and can produce a genuinely NEW candidate detection in a view where the original pass proposed nothing -- the one channel tested so far with a real mechanism to potentially recover a TRUE_DETECTOR_MISS case.
+- Reasons: guardrail 'hazard.precision' violated: 0.7438 does not satisfy gte 0.7570 (hazard precision must not drop more than 0.05 below baseline)

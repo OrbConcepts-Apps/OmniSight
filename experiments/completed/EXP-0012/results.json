@@ -1,0 +1,64 @@
+{
+  "baseline_metrics": {
+    "hazard": {
+      "precision": 0.8070175438596491,
+      "recall": 0.4804177545691906
+    },
+    "person": {
+      "recall": 0.21122112211221122,
+      "precision": 0.6666666666666666,
+      "num_gt": 303
+    },
+    "latency": {
+      "p95_ms": 62.96420000035141
+    }
+  },
+  "candidate_metrics": {
+    "hazard": {
+      "precision": 0.7438330170777988,
+      "recall": 0.5117493472584856
+    },
+    "person": {
+      "recall": 0.23432343234323433,
+      "precision": 0.5867768595041323,
+      "num_gt": 303
+    },
+    "latency": {
+      "p95_ms": 83.11069999945175
+    }
+  },
+  "raw_evaluation_policy_verdict": "FAILED",
+  "execution_status": "COMPLETED",
+  "research_verdict": "FAIL",
+  "guardrail_results": [
+    {
+      "metric": "hazard.precision",
+      "value": 0.7438330170777988,
+      "threshold": 0.757017543859649,
+      "comparator": "gte",
+      "satisfied": false,
+      "margin": 0.013184526781850225
+    },
+    {
+      "metric": "hazard.recall",
+      "value": 0.5117493472584856,
+      "threshold": 0.4604177545691906,
+      "comparator": "gte",
+      "satisfied": true,
+      "margin": 0.05133159268929505
+    },
+    {
+      "metric": "latency.p95_ms",
+      "value": 83.11069999945175,
+      "threshold": 94.44630000052712,
+      "comparator": "lte",
+      "satisfied": true,
+      "margin": 11.335600001075363
+    }
+  ],
+  "reasons": [
+    "guardrail 'hazard.precision' violated: 0.7438 does not satisfy gte 0.7570 (hazard precision must not drop more than 0.05 below baseline)"
+  ],
+  "notes": "Test-time augmentation (augment=True) vs control (augment=False), real non-training inference over the 380-image eval set, confidence/NMS-IoU fixed at production values. person.recall_delta=+0.0231, latency_regression=+32.0% (guardrail: <=50%). TRUE_DETECTOR_MISS recovery: 1/92 strict, 1/92 spatially-associated. Evidence source: benchmark\\results\\diagnostics\\tta_sweep.json.",
+  "result_run_id": "RUN-20260904-002+tta_sweep@augment=True"
+}

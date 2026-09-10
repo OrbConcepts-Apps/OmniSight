@@ -1,0 +1,7 @@
+[2026-09-10T00:02:21.656684+00:00] branch experiment/EXP-0012 created from 358e199f14bc361e3342416b3dc05885dd1aa883
+Loaded C:\Users\Armaa\Downloads\OmniSight\benchmark\results\diagnostics\tta_sweep.json
+summary: {'person_recall_delta': 0.023102310231023104, 'guardrail_satisfied': False, 'meaningful_delta': False, 'latency_regression_pct': 31.99675370923144, 'latency_guardrail_satisfied': True, 'point_estimate_pass': False}
+TRUE_DETECTOR_MISS recovery: {'denominator': 92, 'recovered_strict_iou_ge_0.5': 1, 'spatially_associated_iou_ge_0.3': 1}
+[2026-09-10T00:02:49.692260+00:00] pytest exit_ok=True
+[2026-09-10T00:02:49.758218+00:00] evaluation_policy verdict=FAILED -> research_verdict=FAIL
+[2026-09-10T00:02:49.758218+00:00] verdict explanation: FAILED: guardrail 'hazard.precision' violated: 0.7438 does not satisfy gte 0.7570 (hazard precision must not drop more than 0.05 below baseline)

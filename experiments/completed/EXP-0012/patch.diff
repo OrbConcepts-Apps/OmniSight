@@ -1,0 +1,133 @@
+diff --git a/experiments/queued/EXP-0012/analysis.md b/experiments/queued/EXP-0012/analysis.md
+deleted file mode 100644
+index da5191e..0000000
+--- a/experiments/queued/EXP-0012/analysis.md
++++ /dev/null
+@@ -1,3 +0,0 @@
+-# EXP-0012 â€” Analysis
+-
+-(not yet run)
+diff --git a/experiments/queued/EXP-0012/benchmark.log b/experiments/queued/EXP-0012/benchmark.log
+deleted file mode 100644
+index e69de29..0000000
+diff --git a/experiments/queued/EXP-0012/conclusion.md b/experiments/queued/EXP-0012/conclusion.md
+deleted file mode 100644
+index a6cc3f7..0000000
+--- a/experiments/queued/EXP-0012/conclusion.md
++++ /dev/null
+@@ -1,3 +0,0 @@
+-# EXP-0012 â€” Conclusion
+-
+-(not yet run)
+diff --git a/experiments/queued/EXP-0012/config.yaml b/experiments/queued/EXP-0012/config.yaml
+deleted file mode 100644
+index a66982f..0000000
+--- a/experiments/queued/EXP-0012/config.yaml
++++ /dev/null
+@@ -1,16 +0,0 @@
+-experiment_id: EXP-0012
+-experiment_family: threshold_postprocessing
+-independent_variable: tta_augment (benchmark/model.py::predict_at()'s new `augment`
+-  parameter, passed to ultralytics model.predict()) -- binary on/off, confidence (0.4)
+-  and NMS IoU (0.7) fixed at production values throughout, not jointly optimized with
+-  either closed branch.
+-controls:
+-  model: yolov8m-oiv7.pt (same weights as the canonical baseline)
+-  manifest: data/manifests/eval_manifest.jsonl (unchanged)
+-  imgsz: 640
+-  confidence_threshold: 0.4
+-  nms_iou: 0.7
+-configuration: {}
+-baseline_run_id: RUN-20260904-002
+-validation_requirement: OFFLINE_SIMULATABLE
+-estimated_cost: 0.0
+diff --git a/experiments/queued/EXP-0012/hypothesis.md b/experiments/queued/EXP-0012/hypothesis.md
+deleted file mode 100644
+index 7684655..0000000
+--- a/experiments/queued/EXP-0012/hypothesis.md
++++ /dev/null
+@@ -1,25 +0,0 @@
+-# EXP-0012 â€” Hypothesis
+-
+-**Family**: threshold_postprocessing
+-**Validation requirement**: OFFLINE_SIMULATABLE
+-**Parent experiment**: (none)
+-
+-## Hypothesis
+-
+-Test-time augmentation (ultralytics augment=True: multi-view flip/scale inference merged via NMS), confidence and NMS IoU fixed at production values, recovers meaningful Person recall (>= +0.03 vs the augment=False control) while keeping hazard-aggregate precision at or above the standard guardrail (>= 0.757) AND keeping p95 latency within the lab's existing +50% regression guardrail. Mechanism: unlike confidence-threshold or NMS-IoU changes (which can only re-select among a single pass's already-proposed candidates), TTA runs multiple transformed views through the model and can produce a genuinely NEW candidate detection in a view where the original pass proposed nothing -- the one channel tested so far with a real mechanism to potentially recover a TRUE_DETECTOR_MISS case.
+-
+-## Motivation
+-
+-Both prior post-hoc, single-pass levers on the shipped checkpoint (EXP-0007-0010 Person confidence threshold, EXP-0011 NMS IoU) are closed as negative results, and both were mechanistically incapable of ever recovering a TRUE_DETECTOR_MISS case (92/239 baseline Person false negatives, the dominant failure category) -- neither can add a detection where the single forward pass proposed none. TTA is mechanistically different: it is real inference (still no training, no new data), but genuinely multi-pass, giving it an actual channel this lab has not yet tested.
+-
+-## Rationale
+-
+-Uses only the existing frozen 380-image public eval set and the existing shipped checkpoint. Not a hyperparameter sweep -- a single ON/OFF test, so there is no grid point to cherry-pick from. Real cost is measured directly and checked against the lab's EXISTING latency guardrail (not a new criterion) -- a recall improvement bought with unacceptable real-time latency cost is a genuine, reportable constraint for an assistive-vision system, not something to omit. Orthogonal to and unaffected by the blocked EXP-0006 pilot.
+-
+-## Expected outcome
+-
+-Either: (a) no meaningful recall improvement -- closes this line of inquiry as a third consecutive negative result on the shipped checkpoint's inference-time levers; (b) a meaningful recall improvement but at an unacceptable latency cost -- a real, reportable constraint, not a usable production candidate; or (c) a genuine, guardrail-clearing, latency-acceptable improvement -- the strongest candidate this lab has found on the shipped checkpoint, still requiring the same robustness check before being treated as credible.
+-
+-## Risks
+-
+-Runs real (non-training) GPU inference, 2-3x the normal per-image cost expected -- no training, no private data, no production/config changes (uses predict_at(), never predict(); benchmark/config.py is never modified). The only risk is scientific: an honest negative or latency-constrained result must be reported as such, not reframed as a win.
+diff --git a/experiments/queued/EXP-0012/methodology.md b/experiments/queued/EXP-0012/methodology.md
+deleted file mode 100644
+index d9f8a48..0000000
+--- a/experiments/queued/EXP-0012/methodology.md
++++ /dev/null
+@@ -1,33 +0,0 @@
+-# EXP-0012 â€” Methodology
+-
+-## Independent variable
+-
+-tta_augment (benchmark/model.py::predict_at()'s new `augment` parameter, passed to ultralytics model.predict()) -- binary on/off, confidence (0.4) and NMS IoU (0.7) fixed at production values throughout, not jointly optimized with either closed branch.
+-
+-## Controls (held constant)
+-
+-- `model`: yolov8m-oiv7.pt (same weights as the canonical baseline)
+-- `manifest`: data/manifests/eval_manifest.jsonl (unchanged)
+-- `imgsz`: 640
+-- `confidence_threshold`: 0.4
+-- `nms_iou`: 0.7
+-
+-## Evaluation method
+-
+-benchmark/diagnostics/tta_sweep.py runs real (non-training) inference over all 380 eval images under augment=False (control, must exactly reproduce the official baseline) and augment=True (candidate), computing hazard/Person metrics via the same benchmark.metrics matching code as every other experiment in this lab, plus p50/p95 latency and the same TRUE_DETECTOR_MISS recovery check as EXP-0011 against the 92 known baseline cases.
+-
+-## Success criteria (checked by research/evaluation_policy.py)
+-
+-- `primary_metric`: person.recall
+-- `min_meaningful_delta`: 0.03
+-- `precision_floor`: 0.757
+-- `guardrail_metrics`: ['hazard.precision', 'latency.p95_ms']
+-- `max_latency_regression_pct`: 50.0
+-- `sample_size_requirements`: {'person': 100}
+-- `note`: All three thresholds (0.757, 0.03, 50%) are UNCHANGED from this lab's existing policy (research/evaluation_policy.py::default_hazard_policy) -- no new significance criterion is introduced. If the point estimate passes, the same image-level bootstrap robustness check that exposed EXP-0008's fragility (EXP-0009's methodology) is required before treating it as credible.
+-
+-## Baseline compared against
+-
+-`RUN-20260904-002` (see `benchmark/results/baseline/run_metadata.json`
+-if this is the canonical baseline, or `benchmark/results/diagnostics/` for a
+-diagnostic-derived baseline).
+diff --git a/experiments/queued/EXP-0012/patch.diff b/experiments/queued/EXP-0012/patch.diff
+deleted file mode 100644
+index e69de29..0000000
+diff --git a/experiments/queued/EXP-0012/results.json b/experiments/queued/EXP-0012/results.json
+deleted file mode 100644
+index 0967ef4..0000000
+--- a/experiments/queued/EXP-0012/results.json
++++ /dev/null
+@@ -1 +0,0 @@
+-{}
+
+# --- untracked files (not shown above; git diff does not include them) ---
+# experiments/running/EXP-0012/analysis.md
+# experiments/running/EXP-0012/benchmark.log
+# experiments/running/EXP-0012/conclusion.md
+# experiments/running/EXP-0012/config.yaml
+# experiments/running/EXP-0012/hypothesis.md
+# experiments/running/EXP-0012/methodology.md
+# experiments/running/EXP-0012/patch.diff
+# experiments/running/EXP-0012/results.json
