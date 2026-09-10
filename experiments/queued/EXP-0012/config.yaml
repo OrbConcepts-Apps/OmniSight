@@ -1,0 +1,16 @@
+experiment_id: EXP-0012
+experiment_family: threshold_postprocessing
+independent_variable: tta_augment (benchmark/model.py::predict_at()'s new `augment`
+  parameter, passed to ultralytics model.predict()) -- binary on/off, confidence (0.4)
+  and NMS IoU (0.7) fixed at production values throughout, not jointly optimized with
+  either closed branch.
+controls:
+  model: yolov8m-oiv7.pt (same weights as the canonical baseline)
+  manifest: data/manifests/eval_manifest.jsonl (unchanged)
+  imgsz: 640
+  confidence_threshold: 0.4
+  nms_iou: 0.7
+configuration: {}
+baseline_run_id: RUN-20260904-002
+validation_requirement: OFFLINE_SIMULATABLE
+estimated_cost: 0.0
